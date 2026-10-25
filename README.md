@@ -66,8 +66,10 @@ Walking stays on the real keyboard (`WASD`). Telling **sword** apart from **mini
 | Part | Notes |
 |---|---|
 | STM32F4 Discovery (STM32F407VG) | Cortex-M4 @ 168 MHz, 512 KB flash, 192 KB RAM, LIS3DSH accelerometer |
-| MPU-6050 breakout | Gyro + accelerometer on I2C, about $5 |
+| MPU-6050 (GY-521) breakout | Gyro + accelerometer on I2C, about $5: [Amazon link](https://www.amazon.com/dp/B07MMZ37PT) |
 | Micro-USB cable | To the USB OTG port: HID controller mode, plus USB serial mode for data collection |
+
+Full parts list, wiring and compatibility notes: [docs/hardware.md](docs/hardware.md)
 
 ## 📁 Repo layout
 
