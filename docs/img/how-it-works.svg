@@ -1,0 +1,77 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1000" height="230" viewBox="0 0 1000 230" shape-rendering="crispEdges">
+<rect width="1000" height="230" rx="14" fill="#f6f4ee"/>
+<rect x="24" y="34" width="214" height="166" rx="10" fill="#ffffff" stroke="#e2ded2" stroke-width="2"/>
+<rect x="24" y="34" width="214" height="10" rx="4" fill="#2f6fd6"/>
+<text x="42" y="76" font-family="-apple-system,Segoe UI,Helvetica,Arial,sans-serif" font-size="13" font-weight="800" letter-spacing="1.5" fill="#2f6fd6">01 SENSE</text>
+<text x="42" y="106" font-family="-apple-system,Segoe UI,Helvetica,Arial,sans-serif" font-size="21" font-weight="700" fill="#1d1f1a">Read motion</text>
+<text x="42" y="138" font-family="-apple-system,Segoe UI,Helvetica,Arial,sans-serif" font-size="15" fill="#5b6157">Accelerometer + gyro</text>
+<text x="42" y="160" font-family="-apple-system,Segoe UI,Helvetica,Arial,sans-serif" font-size="15" fill="#5b6157">at 100 Hz into a</text>
+<text x="42" y="182" font-family="-apple-system,Segoe UI,Helvetica,Arial,sans-serif" font-size="15" fill="#5b6157">sliding window</text>
+<rect x="247.0" y="105.0" width="3.9" height="3.9" fill="#9a958a"/>
+<rect x="247.0" y="108.5" width="3.9" height="3.9" fill="#9a958a"/>
+<rect x="250.5" y="108.5" width="3.9" height="3.9" fill="#9a958a"/>
+<rect x="247.0" y="112.0" width="3.9" height="3.9" fill="#9a958a"/>
+<rect x="250.5" y="112.0" width="3.9" height="3.9" fill="#9a958a"/>
+<rect x="254.0" y="112.0" width="3.9" height="3.9" fill="#9a958a"/>
+<rect x="247.0" y="115.5" width="3.9" height="3.9" fill="#9a958a"/>
+<rect x="250.5" y="115.5" width="3.9" height="3.9" fill="#9a958a"/>
+<rect x="254.0" y="115.5" width="3.9" height="3.9" fill="#9a958a"/>
+<rect x="257.5" y="115.5" width="3.9" height="3.9" fill="#9a958a"/>
+<rect x="247.0" y="119.0" width="3.9" height="3.9" fill="#9a958a"/>
+<rect x="250.5" y="119.0" width="3.9" height="3.9" fill="#9a958a"/>
+<rect x="254.0" y="119.0" width="3.9" height="3.9" fill="#9a958a"/>
+<rect x="247.0" y="122.5" width="3.9" height="3.9" fill="#9a958a"/>
+<rect x="250.5" y="122.5" width="3.9" height="3.9" fill="#9a958a"/>
+<rect x="247.0" y="126.0" width="3.9" height="3.9" fill="#9a958a"/>
+<rect x="272" y="34" width="214" height="166" rx="10" fill="#ffffff" stroke="#e2ded2" stroke-width="2"/>
+<rect x="272" y="34" width="214" height="10" rx="4" fill="#5d9b3a"/>
+<text x="290" y="76" font-family="-apple-system,Segoe UI,Helvetica,Arial,sans-serif" font-size="13" font-weight="800" letter-spacing="1.5" fill="#5d9b3a">02 THINK</text>
+<text x="290" y="106" font-family="-apple-system,Segoe UI,Helvetica,Arial,sans-serif" font-size="21" font-weight="700" fill="#1d1f1a">Classify on chip</text>
+<text x="290" y="138" font-family="-apple-system,Segoe UI,Helvetica,Arial,sans-serif" font-size="15" fill="#5b6157">Pruned int8 CNN on</text>
+<text x="290" y="160" font-family="-apple-system,Segoe UI,Helvetica,Arial,sans-serif" font-size="15" fill="#5b6157">the Cortex-M4,</text>
+<text x="290" y="182" font-family="-apple-system,Segoe UI,Helvetica,Arial,sans-serif" font-size="15" fill="#5b6157">every ~50 ms</text>
+<rect x="495.0" y="105.0" width="3.9" height="3.9" fill="#9a958a"/>
+<rect x="495.0" y="108.5" width="3.9" height="3.9" fill="#9a958a"/>
+<rect x="498.5" y="108.5" width="3.9" height="3.9" fill="#9a958a"/>
+<rect x="495.0" y="112.0" width="3.9" height="3.9" fill="#9a958a"/>
+<rect x="498.5" y="112.0" width="3.9" height="3.9" fill="#9a958a"/>
+<rect x="502.0" y="112.0" width="3.9" height="3.9" fill="#9a958a"/>
+<rect x="495.0" y="115.5" width="3.9" height="3.9" fill="#9a958a"/>
+<rect x="498.5" y="115.5" width="3.9" height="3.9" fill="#9a958a"/>
+<rect x="502.0" y="115.5" width="3.9" height="3.9" fill="#9a958a"/>
+<rect x="505.5" y="115.5" width="3.9" height="3.9" fill="#9a958a"/>
+<rect x="495.0" y="119.0" width="3.9" height="3.9" fill="#9a958a"/>
+<rect x="498.5" y="119.0" width="3.9" height="3.9" fill="#9a958a"/>
+<rect x="502.0" y="119.0" width="3.9" height="3.9" fill="#9a958a"/>
+<rect x="495.0" y="122.5" width="3.9" height="3.9" fill="#9a958a"/>
+<rect x="498.5" y="122.5" width="3.9" height="3.9" fill="#9a958a"/>
+<rect x="495.0" y="126.0" width="3.9" height="3.9" fill="#9a958a"/>
+<rect x="520" y="34" width="214" height="166" rx="10" fill="#ffffff" stroke="#e2ded2" stroke-width="2"/>
+<rect x="520" y="34" width="214" height="10" rx="4" fill="#d9a400"/>
+<text x="538" y="76" font-family="-apple-system,Segoe UI,Helvetica,Arial,sans-serif" font-size="13" font-weight="800" letter-spacing="1.5" fill="#d9a400">03 ACT</text>
+<text x="538" y="106" font-family="-apple-system,Segoe UI,Helvetica,Arial,sans-serif" font-size="21" font-weight="700" fill="#1d1f1a">Press the key</text>
+<text x="538" y="138" font-family="-apple-system,Segoe UI,Helvetica,Arial,sans-serif" font-size="15" fill="#5b6157">USB port acts as a</text>
+<text x="538" y="160" font-family="-apple-system,Segoe UI,Helvetica,Arial,sans-serif" font-size="15" fill="#5b6157">keyboard + mouse</text>
+<rect x="743.0" y="105.0" width="3.9" height="3.9" fill="#9a958a"/>
+<rect x="743.0" y="108.5" width="3.9" height="3.9" fill="#9a958a"/>
+<rect x="746.5" y="108.5" width="3.9" height="3.9" fill="#9a958a"/>
+<rect x="743.0" y="112.0" width="3.9" height="3.9" fill="#9a958a"/>
+<rect x="746.5" y="112.0" width="3.9" height="3.9" fill="#9a958a"/>
+<rect x="750.0" y="112.0" width="3.9" height="3.9" fill="#9a958a"/>
+<rect x="743.0" y="115.5" width="3.9" height="3.9" fill="#9a958a"/>
+<rect x="746.5" y="115.5" width="3.9" height="3.9" fill="#9a958a"/>
+<rect x="750.0" y="115.5" width="3.9" height="3.9" fill="#9a958a"/>
+<rect x="753.5" y="115.5" width="3.9" height="3.9" fill="#9a958a"/>
+<rect x="743.0" y="119.0" width="3.9" height="3.9" fill="#9a958a"/>
+<rect x="746.5" y="119.0" width="3.9" height="3.9" fill="#9a958a"/>
+<rect x="750.0" y="119.0" width="3.9" height="3.9" fill="#9a958a"/>
+<rect x="743.0" y="122.5" width="3.9" height="3.9" fill="#9a958a"/>
+<rect x="746.5" y="122.5" width="3.9" height="3.9" fill="#9a958a"/>
+<rect x="743.0" y="126.0" width="3.9" height="3.9" fill="#9a958a"/>
+<rect x="768" y="34" width="214" height="166" rx="10" fill="#ffffff" stroke="#e2ded2" stroke-width="2"/>
+<rect x="768" y="34" width="214" height="10" rx="4" fill="#c0392b"/>
+<text x="786" y="76" font-family="-apple-system,Segoe UI,Helvetica,Arial,sans-serif" font-size="13" font-weight="800" letter-spacing="1.5" fill="#c0392b">04 PLAY</text>
+<text x="786" y="106" font-family="-apple-system,Segoe UI,Helvetica,Arial,sans-serif" font-size="21" font-weight="700" fill="#1d1f1a">Under 100 ms</text>
+<text x="786" y="138" font-family="-apple-system,Segoe UI,Helvetica,Arial,sans-serif" font-size="15" fill="#5b6157">Your jump lands</text>
+<text x="786" y="160" font-family="-apple-system,Segoe UI,Helvetica,Arial,sans-serif" font-size="15" fill="#5b6157">when you jump</text>
+</svg>
