@@ -10,7 +10,8 @@ The board is the whole controller: no keyboard or mouse.
 
 | Press | Action |
 |---|---|
-| Short press | Switch between **look mode** and **move mode** |
+| Short press | Switch between **look mode** and **move mode** (toggle: ✅ decided Oct 26) |
+| Double press | Enter/leave **cursor mode** for inventory and crafting |
 | Long press | Recalibrate (hold the board still for 2 s) |
 
 The LEDs show the current mode (for example green = look, orange = move).
@@ -35,7 +36,7 @@ Sword vs. mine is the hardest pair: Minecraft sees both as a left click, so the 
 - **Calibration:** on startup (and on a long press), hold the board still for 2 s so the firmware can measure the gyro's built-in drift and subtract it.
 - **Swing fix:** a sword swing also rotates the board. Aiming pauses whenever the model detects a gesture, or when the board spins faster than a threshold, so the camera doesn't jerk.
 
-### Move mode: **open**
+### Move mode: tilt to walk (default)
 
 | Option | How it works | Pros | Cons |
 |---|---|---|---|
@@ -43,7 +44,9 @@ Sword vs. mine is the hardest pair: Minecraft sees both as a left click, so the 
 | Walk in place | March on the spot; a model detects "walking" from the bobbing and you walk where you're looking | Great demo, real ML | Needs a way to stop and to strafe |
 | Point and go | Walk in whatever direction the board points | Intuitive | Hard to aim and move at once |
 
-Plan: start with tilt-to-walk so the checkpoint has a working controller, then try walk-in-place as an ML stretch goal.
+Plan: start with tilt-to-walk so the checkpoint has a working controller, then try walk-in-place as an ML stretch goal. In move mode, turning the board left/right still steers the camera; only tilt becomes `WASD`.
+
+> **Updated Oct 26 after the [council review](council-review.md):** sword + mine become one "strike" behavior (click, then hold while striking), jump is a hop only, and shake (`E` + cursor mode) is a must-have. The current gesture list lives in [architecture.md](architecture.md#gestures--game-events).
 
 Extra gesture ideas: shake to open the inventory (`E`), quick drop of the board to crouch, faster walking to sprint.
 

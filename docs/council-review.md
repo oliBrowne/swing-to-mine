@@ -196,7 +196,7 @@ Weeks 1–2 are mostly plumbing (I2C, USB, modes). Add a few cheap measured comp
 
 | # | Decision | Recommended |
 |---|---|---|
-| 1 | Move mode: hold-to-move or toggle? | Hold-to-move |
+| 1 | Move mode: hold-to-move or toggle? | ✅ **Decided Oct 26: toggle** (add a buzzer later if mode errors happen) |
 | 2 | Cursor mode: third mode or button pattern? | Shake to enter/exit, plus double-press |
 | 3 | Merge sword + mine for gameplay? | Yes, keep slash vs chop as an ML experiment |
 | 4 | Fallback if behind: WASD on a real keyboard for walking? | Yes, as the cut-order fallback only |

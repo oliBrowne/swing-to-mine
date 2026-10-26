@@ -84,8 +84,11 @@ firmware/   STM32 project: sensor reading, USB HID, on-device inference
 data/raw/   recorded gesture CSVs
 training/   data loading, augmentation, training, compression, ExecuTorch export
 host/       PC-side scripts (data capture over USB serial, live test tools)
-docs/       pitch, proposal, experiment log, figures
+docs/       pitch, plans, architecture, decisions, results
+AGENTS.md   start here if you're an AI assistant (or new to the repo)
 ```
+
+The design is in [docs/architecture.md](docs/architecture.md). Each folder has a README with its plan and status.
 
 ## 🚀 Getting started
 

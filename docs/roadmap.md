@@ -23,7 +23,7 @@ Present                                                         ★
 - [ ] Read the MPU-6050 at 100 Hz (`WHO_AM_I`, wake it, burst read of accel + gyro) · *Oliver*
 - [ ] Stream the 6 channels to the PC over USB serial · *Oliver*
 - [ ] Host script that records labeled clips to CSV (`host/record.py`) · *Eli*
-- [ ] Decide how moving works (see [gesture-notes.md](gesture-notes.md#move-mode-open)) · *both*
+- [x] Decide how moving works: toggle + tilt to walk (see [gesture-notes.md](gesture-notes.md#move-mode-tilt-to-walk-default)) · *both*
 
 **Done when:** you can wave the board and watch 6 live lines on the PC, then save a labeled clip.
 
