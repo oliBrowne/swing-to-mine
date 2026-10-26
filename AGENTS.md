@@ -21,7 +21,6 @@ You're looking at **Swing to Mine**: a handheld STM32F4 Discovery + MPU-6050 tha
 - **One source of truth for the class list:** `training/labels.py` (planned). Firmware gets it through the export step, never by hand-copying.
 - **No personal data in the repo:** people in the dataset are `P01`, `P02`, … Keep the name mapping elsewhere, and only commit data from people who agreed to it.
 - **Measure, don't guess:** latency, flash/RAM use and false triggers per minute go into `docs/results.md` (create it when there are numbers) with how they were measured.
-- **Course AI policy:** check the course's rules before having an AI write graded parts. When in doubt, let the AI explain and review while the team writes the core ML code.
 
 ## Folder map
 
