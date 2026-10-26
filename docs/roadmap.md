@@ -4,7 +4,7 @@
 
 Rough budget: about 30 hours each (the course minimum), or about 6 hours a week each for 5 weeks.
 
-Owners are suggestions: **Oliver** on firmware and hardware, **Eli** on data and training, since he wrote the Lab 2 training script. Swap freely.
+Owners are suggestions: **Oliver** on firmware and hardware, **Eli** on the recording script and training, since he wrote the Lab 2 training script. Swap freely. **Everyone records data**, including both of us and any friends we recruit, because more people means a model that works for anyone.
 
 ```
 Week          Oct 26   Nov 2    Nov 9    Nov 16   Nov 23   ...   Dec 8
@@ -33,7 +33,7 @@ Present                                                         ★
 - [ ] Button: short press switches look/move, long press recalibrates; LEDs show the mode · *Oliver*
 - [ ] Look mode: gyro "air mouse" with drift calibration · *Oliver*
 - [ ] Move mode: tilt to walk (or whatever we pick in week 1) · *Oliver*
-- [ ] Record pilot data: about 20 reps of each gesture, Oliver + Eli · *both*
+- [ ] Record pilot data: about 20 reps of each gesture · *everyone*
 - [ ] **Nov 6:** idea and team locked in (course milestone, nothing to submit)
 
 **Done when:** you can walk around and look around in Minecraft with only the board.
@@ -41,7 +41,7 @@ Present                                                         ★
 ## Week 3 · Nov 9 – Nov 15 · First model + checkpoint
 
 - [ ] Train a first small CNN on the pilot data and check which gestures get confused · *Eli*
-- [ ] Recruit 2–3 friends and run full data collection (plan in [gesture-notes.md](gesture-notes.md#data-collection-plan)) · *both*
+- [ ] Full data collection: Oliver, Eli and 2–3 recruited friends, about 25 min each (plan in [gesture-notes.md](gesture-notes.md#data-collection-plan)) · *everyone*
 - [ ] Checkpoint slides: live look/move demo, data plots, first accuracy numbers · *both*
 - [ ] **Nov 12 / 14:** checkpoint presentation
 
