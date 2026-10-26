@@ -71,6 +71,8 @@ Walking stays on the real keyboard (`WASD`). Telling **sword** apart from **mini
 
 Full parts list, wiring and compatibility notes: [docs/hardware.md](docs/hardware.md)
 
+Control scheme, gesture list and data collection plan: [docs/gesture-notes.md](docs/gesture-notes.md)
+
 ## 📁 Repo layout
 
 ```
