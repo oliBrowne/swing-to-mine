@@ -21,7 +21,7 @@
   <img src="docs/img/how-it-works.svg" alt="Sense, think, act, play pipeline" width="100%">
 </p>
 
-1. **Sense:** the board's accelerometer, plus an MPU-6050 gyro, is sampled at 100 Hz into a sliding window.
+1. **Sense:** an MPU-6050 gyro + accelerometer is sampled at 100 Hz into a sliding window.
 2. **Think:** a pruned, int8-quantized CNN (exported with ExecuTorch) classifies the latest window every ~50 ms on the Cortex-M4.
 3. **Act:** the USB OTG port runs as a composite HID keyboard + mouse and sends the matching input.
 4. **Play:** the target is under 100 ms from motion to input, so a jump lands when you jump.
@@ -36,9 +36,9 @@
 | <img src="docs/img/icon-jump.svg" width="32"> | **Jump** | Hop, or flick up | `Space` |
 | <img src="docs/img/icon-swap.svg" width="32"> | **Swap item** | Twist your wrist left / right | Scroll wheel |
 | <img src="docs/img/icon-idle.svg" width="32"> | **Idle** | Anything else | Nothing |
-| <img src="docs/img/icon-tilt.svg" width="32"> | **Aim** *(stretch)* | Tilt, using the gyro | Mouse movement |
+| <img src="docs/img/icon-tilt.svg" width="32"> | **Look / move** | Rotate the board to look; tilt to walk in move mode | Mouse movement / `WASD` |
 
-Walking stays on the real keyboard (`WASD`). Telling **sword** apart from **mining** is the interesting ML problem: Minecraft sees both as a left click, so the model has to recognize one slash vs. repeated chopping.
+No keyboard or mouse: the board does everything, including looking around (gyro "air mouse") and walking. See [docs/gesture-notes.md](docs/gesture-notes.md) for the control scheme. Telling **sword** apart from **mining** is the interesting ML problem: Minecraft sees both as a left click, so the model has to recognize one slash vs. repeated chopping.
 
 ## 🗓️ Timeline
 
@@ -75,6 +75,8 @@ Full parts list, wiring and compatibility notes: [docs/hardware.md](docs/hardwar
 
 Control scheme, gesture list and data collection plan: [docs/gesture-notes.md](docs/gesture-notes.md)
 
+Concept review from four perspectives (Minecraft, ML, UX, course): [docs/council-review.md](docs/council-review.md)
+
 ## 📁 Repo layout
 
 ```
@@ -91,7 +93,7 @@ Setup and run instructions will be added as each part comes together.
 
 ## ✨ Stretch goals
 
-- Gyro aiming that replaces the mouse
+- Walk-in-place detection instead of tilt-to-walk
 - A second board for the other hand (shield, walking)
 
 ## 👥 Team
