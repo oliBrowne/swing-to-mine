@@ -46,12 +46,14 @@ Walking stays on the real keyboard (`WASD`). Telling **sword** apart from **mini
   <img src="docs/img/timeline.svg" alt="Timeline: Oct 25 kickoff, Nov 6 idea locked, Nov 12/14 checkpoint, late Nov train and shrink, Dec 8 live demo" width="100%">
 </p>
 
+Week-by-week plan with owners: [docs/roadmap.md](docs/roadmap.md) · Goals and success criteria: [docs/requirements.md](docs/requirements.md)
+
 | Date | Milestone | Goal |
 |---|---|---|
 | ✅ Oct 25 | Kickoff | Team formed, repo set up |
 | Nov 6 | Idea locked | Final gesture list and hardware |
 | Nov 12 / 14 | Checkpoint presentation | Board works as a USB controller, first gesture data recorded |
-| Late Nov | Train + shrink | Int8 model running on the board within the flash and RAM budget |
+| Nov 26 | Done by Thanksgiving | Int8 model running on the board, full controller working, demo video recorded |
 | Dec 8 | Final presentation | Live demo: play Minecraft in front of the class |
 
 ## 🧱 Why it's an Embedded AI project
