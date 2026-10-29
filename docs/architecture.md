@@ -98,7 +98,7 @@ Rules in every mode:
 
 Measure with GPIO toggles on a logic analyzer/scope (or 240 fps video), and the DWT cycle counter for inference.
 
-## Memory budget (STM32F407: 512 KB flash, 128 KB RAM + 64 KB CCM)
+## Memory budget (STM32F407VG: 1 MB flash, 128 KB RAM + 64 KB CCM)
 
 | Item | Estimate |
 |---|---|
@@ -151,7 +151,8 @@ data/raw/<person_id>/<session_id>.labels.csv   # start_ms,end_ms,label
 
 | Part | Tool |
 |---|---|
-| Firmware | STM32CubeIDE / CubeMX (HAL for clocks, I2C, GPIO, timers) |
+| Firmware | CMake + Arm GNU toolchain (`arm-none-eabi-gcc`), ST HAL/CMSIS as git submodules (no CubeIDE needed) |
+| Flashing | OpenOCD over the onboard ST-LINK (planned) |
 | USB | TinyUSB (composite HID keyboard + mouse with report IDs, plus CDC serial). Fallback: pick HID or serial at boot |
 | Inference | ExecuTorch (same flow as Lab 3). Fallback: TFLite Micro or hand-written int8 CNN with CMSIS-NN |
 | Training | Python 3, PyTorch, NumPy, pandas |

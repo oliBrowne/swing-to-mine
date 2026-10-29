@@ -4,7 +4,7 @@
 
 | Part | Qty | Where | Notes |
 |---|---|---|---|
-| STM32F4 Discovery (STM32F407VG) | 1 | already have | Cortex-M4 @ 168 MHz, 512 KB flash, 192 KB RAM, LIS3DSH accelerometer |
+| STM32F4 Discovery (STM32F407VG) | 1 | already have | Cortex-M4 @ 168 MHz, 1 MB flash, 192 KB RAM, LIS3DSH accelerometer |
 | GY-521 MPU-6050 gyro + accelerometer breakout | 1 (packs have spares) | [Amazon: Ximimark 2-pack](https://www.amazon.com/dp/B07MMZ37PT) · backup: [AZDelivery 3-pack](https://www.amazon.com/dp/B07N2ZL34Z) | 3-axis gyro + 3-axis accelerometer, I2C, 3–5 V input |
 | Female-to-female jumper wires | 4–5 | any | Board header pins to GY-521 pins |
 | Micro-USB cable | 1 | any | Into the board's USB OTG port (CN5) for the HID controller |

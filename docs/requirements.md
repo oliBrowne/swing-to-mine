@@ -40,13 +40,13 @@ A handheld STM32F4 Discovery board (plus an MPU-6050 gyro) that works as a full 
 | Gesture accuracy on a person not in the training data | 90% or better |
 | Lag from motion to input | about 100 ms or less |
 | Accidental gestures | about 1 per minute or fewer |
-| Model size | fits comfortably in the F407's 512 KB flash / 192 KB RAM |
+| Model size | fits comfortably in the F407VG's 1 MB flash / 192 KB RAM |
 | Done date | before Thanksgiving (Nov 26) |
 | The real test | someone in class plays it and grins |
 
 ## Constraints
 
-- **Hardware:** STM32F407 (Cortex-M4, 512 KB flash, 192 KB RAM), MPU-6050 on I2C, one user button, 4 LEDs.
+- **Hardware:** STM32F407 (Cortex-M4, 1 MB flash, 192 KB RAM), MPU-6050 on I2C, one user button, 4 LEDs.
 - **Toolchain:** STM32CubeIDE / CubeMX for firmware; PyTorch + ExecuTorch for the model (same as Lab 3).
 - **Time:** about 30 hours each.
 - **Team:** Oliver Browne, Eli Garcia.

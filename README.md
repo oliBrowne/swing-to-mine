@@ -59,7 +59,7 @@ Week-by-week plan with owners: [docs/roadmap.md](docs/roadmap.md) · Goals and s
 ## 🧱 Why it's an Embedded AI project
 
 - **Our own dataset:** record every gesture from several people, like the Lab 2 accelerometer dataset.
-- **Fit it on the chip:** prune and int8-quantize with ExecuTorch, like Lab 3, within 512 KB of flash and 192 KB of RAM.
+- **Fit it on the chip:** prune and int8-quantize with ExecuTorch, like Lab 3, within 1 MB of flash and 192 KB of RAM.
 - **New challenges:** classify a live stream instead of fixed clips, ignore random movement, and meet a real-time latency budget.
 - **Real results:** measure accuracy vs. latency vs. model size, with and without the gyro.
 
@@ -67,7 +67,7 @@ Week-by-week plan with owners: [docs/roadmap.md](docs/roadmap.md) · Goals and s
 
 | Part | Notes |
 |---|---|
-| STM32F4 Discovery (STM32F407VG) | Cortex-M4 @ 168 MHz, 512 KB flash, 192 KB RAM, LIS3DSH accelerometer |
+| STM32F4 Discovery (STM32F407VG) | Cortex-M4 @ 168 MHz, 1 MB flash, 192 KB RAM, LIS3DSH accelerometer |
 | MPU-6050 (GY-521) breakout | Gyro + accelerometer on I2C, about $5: [Amazon link](https://www.amazon.com/dp/B07MMZ37PT) |
 | Micro-USB cable | To the USB OTG port: HID controller mode, plus USB serial mode for data collection |
 
