@@ -18,6 +18,8 @@ cmake --build build                              # -> build/swing_to_mine.elf / 
 openocd -f board/stm32f4discovery.cfg -c "program build/swing_to_mine.elf verify reset exit"
 ```
 
+OpenOCD needs the ST-LINK USB driver ([STSW-LINK009](https://www.st.com/en/development-tools/stsw-link009.html)) on Windows; without it you get `LIBUSB_ERROR_NOT_FOUND`. No driver? Boards with ST-LINK/V2-1 firmware show up as a USB drive (`DIS_F407VG`): copy `build/swing_to_mine.bin` onto it and the ST-LINK flashes and resets the chip. A `FAIL.TXT` on the drive afterwards means it didn't work.
+
 Then plug a second cable into the **micro-USB port (CN5)** at the opposite end of the board from the ST-LINK port. The PC should find "Swing to Mine controller" (a keyboard and a mouse in Device Manager), and the green LED turns on.
 
 | Pin | Use |
