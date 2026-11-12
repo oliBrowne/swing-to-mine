@@ -7,6 +7,8 @@ data/raw/<person_id>/<session_id>.csv          t_ms,ax,ay,az,gx,gy,gz (raw int16
 data/raw/<person_id>/<session_id>.labels.csv   start_ms,end_ms,label
 ```
 
+Record with `host/record.py` (see [../host/README.md](../host/README.md)); it writes both files.
+
 ## Rules
 
 - **Everyone records**, always with the sword handle on and the same physical sensor.

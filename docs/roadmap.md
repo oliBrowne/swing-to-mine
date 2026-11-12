@@ -19,10 +19,10 @@ Present                                                         ★
 ## Week 1 · Oct 26 – Nov 1 · Talk to the board
 
 - [ ] Order the gyro (GY-521 MPU-6050) · *Oliver*
-- [ ] STM32CubeMX project for the F407 Discovery: clock, I2C1, USB OTG FS, button, LEDs · *Oliver*
-- [ ] Read the MPU-6050 at 100 Hz (`WHO_AM_I`, wake it, burst read of accel + gyro) · *Oliver*
-- [ ] Stream the 6 channels to the PC over USB serial · *Oliver*
-- [ ] Host script that records labeled clips to CSV (`host/record.py`) · *Eli*
+- [ ] Firmware project for the F407 Discovery: clock, I2C1, USB OTG FS, button, LEDs · *Oliver*
+- [ ] Read the MPU-6050 at 100 Hz (`WHO_AM_I`, wake it, burst read of accel + gyro) · *Oliver* · code in `firmware/capture` (Nov 12), needs a hardware test
+- [ ] Stream the 6 channels to the PC over USB serial · *Oliver* · UART version in `firmware/capture` for now ([wiring.md](wiring.md))
+- [ ] Host script that records labeled clips to CSV (`host/record.py`) · *Eli* · first version written Nov 12, needs a hardware test
 - [x] Decide how moving works: toggle + tilt to walk (see [gesture-notes.md](gesture-notes.md#move-mode-tilt-to-walk-default)) · *both*
 
 **Done when:** you can wave the board and watch 6 live lines on the PC, then save a labeled clip.
