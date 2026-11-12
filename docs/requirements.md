@@ -47,7 +47,7 @@ A handheld STM32F4 Discovery board (plus an MPU-6050 gyro) that works as a full 
 ## Constraints
 
 - **Hardware:** STM32F407 (Cortex-M4, 1 MB flash, 192 KB RAM), MPU-6050 on I2C, one user button, 4 LEDs.
-- **Toolchain:** STM32CubeIDE / CubeMX for firmware; PyTorch + ExecuTorch for the model (same as Lab 3).
+- **Toolchain:** CMake + `arm-none-eabi-gcc` for firmware (see [architecture.md](architecture.md#toolchain-pin-versions-when-first-installed)); PyTorch + ExecuTorch for the model (same as Lab 3).
 - **Time:** about 30 hours each.
 - **Team:** Oliver Browne, Eli Garcia.
 

@@ -2,7 +2,7 @@
 
 You're looking at **Swing to Mine**: a handheld STM32F4 Discovery + MPU-6050 that plays Minecraft (Java Edition) as a USB keyboard + mouse, with an int8 gesture model running on the chip. It's a CU Boulder Embedded AI final project (Fall 2026) by Oliver Browne and Eli Garcia.
 
-**Status: planning done, code just starting.** Most modules in [docs/architecture.md](docs/architecture.md) don't exist yet. Each folder's README says what's planned and what exists.
+**Status: planning done, code just starting.** Data capture exists (`firmware/capture` + `host/record.py`, written Nov 12, not yet tested on hardware). Most modules in [docs/architecture.md](docs/architecture.md) don't exist yet. Each folder's README says what's planned and what exists.
 
 ## Read in this order
 
@@ -26,7 +26,7 @@ You're looking at **Swing to Mine**: a handheld STM32F4 Discovery + MPU-6050 tha
 
 | Folder | What goes there | Owner (suggested) |
 |---|---|---|
-| `firmware/` | STM32CubeIDE project: sensor, USB, modes, inference | Oliver |
+| `firmware/` | STM32 firmware (CMake + arm-none-eabi-gcc): sensor, USB, modes, inference | Oliver |
 | `host/` | PC scripts: record data, live plots, presentation overlay | Eli |
 | `training/` | dataset, models, training, compression, export | Eli |
 | `data/` | recorded sessions and labels | everyone |

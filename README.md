@@ -70,8 +70,9 @@ Week-by-week plan with owners: [docs/roadmap.md](docs/roadmap.md) · Goals and s
 | STM32F4 Discovery (STM32F407VG) | Cortex-M4 @ 168 MHz, 1 MB flash, 192 KB RAM, LIS3DSH accelerometer |
 | MPU-6050 (GY-521) breakout | Gyro + accelerometer on I2C, about $5: [Amazon link](https://www.amazon.com/dp/B07MMZ37PT) |
 | Micro-USB cable | To the USB OTG port: HID controller mode, plus USB serial mode for data collection |
+| USB-to-UART adapter (for now) | Data collection until USB serial works; pinout in [docs/wiring.md](docs/wiring.md) |
 
-Full parts list, wiring and compatibility notes: [docs/hardware.md](docs/hardware.md)
+Full parts list and compatibility notes: [docs/hardware.md](docs/hardware.md) · Step-by-step pinout: [docs/wiring.md](docs/wiring.md)
 
 Control scheme, gesture list and data collection plan: [docs/gesture-notes.md](docs/gesture-notes.md)
 
@@ -80,10 +81,10 @@ Concept review from four perspectives (Minecraft, ML, UX, course): [docs/council
 ## 📁 Repo layout
 
 ```
-firmware/   STM32 project: sensor reading, USB HID, on-device inference
+firmware/   STM32 firmware: sensor reading, USB HID, on-device inference (capture/ = data recording)
 data/raw/   recorded gesture CSVs
 training/   data loading, augmentation, training, compression, ExecuTorch export
-host/       PC-side scripts (data capture over USB serial, live test tools)
+host/       PC-side scripts (data capture over serial, live test tools)
 docs/       pitch, plans, architecture, decisions, results
 AGENTS.md   start here if you're an AI assistant (or new to the repo)
 ```
@@ -92,7 +93,19 @@ The design is in [docs/architecture.md](docs/architecture.md). Each folder has a
 
 ## 🚀 Getting started
 
-Setup and run instructions will be added as each part comes together.
+Full setup and run instructions will be added as each part comes together. What works so far:
+
+**Record gesture data** (written Nov 12, not yet tested on hardware)
+
+1. Wire the MPU-6050 and a USB-UART adapter: [docs/wiring.md](docs/wiring.md)
+2. Build and flash the capture firmware: [firmware/capture/README.md](firmware/capture/README.md)
+3. Record:
+   ```bash
+   pip install -r host/requirements.txt
+   python host/record.py --port COM5 --check                              # is data coming in?
+   python host/record.py --port COM5 --person P01 --session s01 --reps 10
+   ```
+   More options: [host/README.md](host/README.md)
 
 ## ✨ Stretch goals
 
