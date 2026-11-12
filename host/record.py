@@ -1,0 +1,268 @@
+"""Record gesture data from the Swing to Mine board.
+
+Reads the board's serial stream (one line per sample, 100 Hz) and saves a
+session the way docs/architecture.md describes:
+
+    data/raw/<person>/<session>.csv          t_ms,ax,ay,az,gx,gy,gz
+    data/raw/<person>/<session>.labels.csv   start_ms,end_ms,label
+
+While recording, the terminal tells you which gesture to do next ("GO: hop").
+Each cue becomes one row in the labels file, covering the 1.5 s after the cue.
+Anything without a label counts as "nothing", so move around normally between
+cues.
+
+Examples (use your own COM port; on a Mac it looks like /dev/tty.usbserial-XXXX):
+
+    # 1. check the board is talking (prints a few samples and the sample rate)
+    python host/record.py --port COM5 --check
+
+    # 2. record 10 of each gesture, in random order, one cue every ~3 s
+    python host/record.py --port COM5 --person P01 --session s01 --reps 10
+
+    # 3. only some gestures
+    python host/record.py --port COM5 --person P01 --session s02 --gestures hop punch --reps 20
+
+    # 4. "nothing" data: just move around normally for 5 minutes, no cues
+    python host/record.py --port COM5 --person P01 --session s03 --nothing-minutes 5
+
+Stop early with Ctrl+C: everything recorded so far is kept.
+"""
+
+import argparse
+import math
+import random
+import sys
+import threading
+import time
+from pathlib import Path
+
+try:
+    import serial  # pip install pyserial
+except ImportError:
+    sys.exit("pyserial is missing. Install it with:  pip install pyserial")
+
+REPO = Path(__file__).resolve().parent.parent
+sys.path.insert(0, str(REPO / "training"))
+from labels import CLASSES  # noqa: E402  (the one shared class list)
+
+COLUMNS = "t_ms,ax,ay,az,gx,gy,gz"
+ACCEL_COUNTS_PER_G = 2048.0      # MPU-6050 at +-16 g
+GYRO_COUNTS_PER_DPS = 16.4       # MPU-6050 at +-2000 deg/s
+LABEL_LENGTH_MS = 1500           # how long after a cue the gesture is assumed to happen
+
+
+class BoardReader:
+    """Reads lines from the board in the background and keeps the newest sample.
+
+    Every good sample is passed to on_sample(t_ms, values). Lines starting with
+    '#' are info or error messages from the board and get printed.
+    """
+
+    def __init__(self, port, baud, on_sample):
+        self.ser = serial.Serial(port, baud, timeout=0.2)
+        self.on_sample = on_sample
+        self.last_t_ms = None
+        self.samples = 0
+        self.gaps = 0
+        self.info_line = None
+        self.running = True
+        self.thread = threading.Thread(target=self._loop, daemon=True)
+
+    def start(self):
+        self.thread.start()
+
+    def _loop(self):
+        while self.running:
+            raw = self.ser.readline()
+            if not raw:
+                continue
+            line = raw.decode("ascii", errors="ignore").strip()
+            if not line:
+                continue
+            if line.startswith("#"):
+                if line.startswith("# swing-to-mine"):
+                    self.info_line = line
+                else:
+                    print(f"  [board] {line}")
+                continue
+            parts = line.split(",")
+            if len(parts) != 7:
+                continue                      # column names or a half line: skip
+            try:
+                t_ms, *values = (int(p) for p in parts)
+            except ValueError:
+                continue
+            if self.last_t_ms is not None:
+                step = t_ms - self.last_t_ms
+                if step < 0:
+                    print("  [warning] board time went backwards: did the board reset?")
+                elif step > 15:
+                    self.gaps += 1            # a sample was lost (expected step is 10 ms)
+            self.last_t_ms = t_ms
+            self.samples += 1
+            self.on_sample(t_ms, values)
+
+    def wait_for_data(self, timeout_s=5.0):
+        end = time.time() + timeout_s
+        while time.time() < end:
+            if self.samples > 0:
+                return True
+            time.sleep(0.05)
+        return False
+
+    def close(self):
+        self.running = False
+        self.thread.join(timeout=1)
+        self.ser.close()
+
+
+def no_data_help(port):
+    sys.exit(
+        f"No samples from {port} after 5 s. Things to check:\n"
+        "  - the right COM port (Windows: Device Manager > Ports)\n"
+        "  - adapter TX goes to board PA3 and adapter RX to board PA2 (they cross)\n"
+        "  - adapter GND is connected to board GND\n"
+        "  - the board is flashed with firmware/capture and powered\n"
+        "  - press the black reset button on the board\n"
+        "Wiring: docs/wiring.md"
+    )
+
+
+def check(args):
+    """Print samples for a few seconds and report the rate and an at-rest sanity check."""
+    rows = []
+
+    def on_sample(t_ms, values):
+        rows.append((t_ms, values))
+        if len(rows) % 20 == 1:
+            print(f"  {t_ms},{','.join(str(v) for v in values)}")
+
+    board = BoardReader(args.port, args.baud, on_sample)
+    board.start()
+    print(f"Listening on {args.port} at {args.baud} baud. Keep the board still...")
+    if not board.wait_for_data():
+        board.close()
+        no_data_help(args.port)
+    time.sleep(args.check_seconds)
+    board.close()
+
+    if len(rows) < 2:
+        sys.exit("Got almost no samples.")
+    span_s = (rows[-1][0] - rows[0][0]) / 1000.0
+    rate = (len(rows) - 1) / span_s if span_s > 0 else 0
+    ax, ay, az, gx, gy, gz = (sum(v[i] for _, v in rows) / len(rows) for i in range(6))
+    g = math.sqrt(ax * ax + ay * ay + az * az) / ACCEL_COUNTS_PER_G
+    print()
+    print(f"Samples:   {len(rows)} in {span_s:.1f} s = {rate:.1f} Hz (should be about 100)")
+    print(f"Lost:      {board.gaps} gaps")
+    print(f"Gravity:   {g:.2f} g (should be about 1.00 when the board is still)")
+    print(f"Gyro avg:  {gx / GYRO_COUNTS_PER_DPS:.1f}, {gy / GYRO_COUNTS_PER_DPS:.1f}, "
+          f"{gz / GYRO_COUNTS_PER_DPS:.1f} deg/s (should be near 0 when still)")
+    if board.info_line:
+        print(f"Board:     {board.info_line}")
+
+
+def record(args):
+    gestures = args.gestures or [c for c in CLASSES if c != "nothing"]
+    unknown = [g for g in gestures if g not in CLASSES]
+    if unknown:
+        sys.exit(f"Unknown gesture(s) {unknown}. Choose from: {', '.join(CLASSES)}")
+    if not (args.person.startswith("P") and args.person[1:].isdigit()):
+        sys.exit("Use an anonymous person id like P01, not a name.")
+
+    out_dir = Path(args.out) / args.person
+    out_dir.mkdir(parents=True, exist_ok=True)
+    data_path = out_dir / f"{args.session}.csv"
+    labels_path = out_dir / f"{args.session}.labels.csv"
+    if data_path.exists() and not args.overwrite:
+        sys.exit(f"{data_path} already exists. Pick a new --session or add --overwrite.")
+
+    data_file = open(data_path, "w", newline="")
+    labels_file = open(labels_path, "w", newline="")
+    labels_file.write("start_ms,end_ms,label\n")
+    wrote_header = [False]
+
+    def on_sample(t_ms, values):
+        if not wrote_header[0]:
+            info = board.info_line or "# swing-to-mine v1 rate_hz=100 accel_fs_g=16 gyro_fs_dps=2000"
+            data_file.write(f"{info} person={args.person} session={args.session}\n")
+            data_file.write(COLUMNS + "\n")
+            wrote_header[0] = True
+        data_file.write(f"{t_ms},{','.join(str(v) for v in values)}\n")
+
+    board = BoardReader(args.port, args.baud, on_sample)
+    board.start()
+    print(f"Listening on {args.port}...")
+    if not board.wait_for_data():
+        board.close()
+        no_data_help(args.port)
+
+    # Build the cue list: every gesture `reps` times, shuffled.
+    cues = [g for g in gestures for _ in range(args.reps)]
+    random.shuffle(cues)
+    if args.nothing_minutes:
+        cues = []
+
+    try:
+        print("Get ready. Hold the board with your normal grip.")
+        for n in (3, 2, 1):
+            print(f"  {n}...")
+            time.sleep(1)
+
+        if args.nothing_minutes:
+            print(f"Recording 'nothing' for {args.nothing_minutes} min: aim, walk, rest, "
+                  "fidget. Don't do any gestures.")
+            end = time.time() + args.nothing_minutes * 60
+            while time.time() < end:
+                left = int(end - time.time())
+                print(f"\r  {left // 60}:{left % 60:02d} left   ", end="", flush=True)
+                time.sleep(1)
+            print()
+        else:
+            for i, gesture in enumerate(cues, 1):
+                start = board.last_t_ms
+                print(f"[{i}/{len(cues)}]  GO: {gesture.upper()}\a")
+                labels_file.write(f"{start},{start + LABEL_LENGTH_MS},{gesture}\n")
+                labels_file.flush()
+                # Random gap so the gaps between gestures aren't all identical.
+                time.sleep(max(1.6, args.gap + random.uniform(-0.5, 1.0)))
+            time.sleep(1.0)  # let the last gesture finish
+    except KeyboardInterrupt:
+        print("\nStopped early. Keeping what was recorded.")
+    finally:
+        board.close()
+        data_file.close()
+        labels_file.close()
+
+    print(f"\nSaved {board.samples} samples ({board.samples / 100:.0f} s) to {data_path}")
+    print(f"Saved labels to {labels_path}")
+    if board.gaps:
+        print(f"Note: {board.gaps} gaps in the data (lost samples).")
+
+
+def main():
+    p = argparse.ArgumentParser(description="Record gesture sessions from the Swing to Mine board.")
+    p.add_argument("--port", required=True, help="serial port, e.g. COM5 or /dev/tty.usbserial-1410")
+    p.add_argument("--baud", type=int, default=115200)
+    p.add_argument("--check", action="store_true", help="just test the connection and print stats")
+    p.add_argument("--check-seconds", type=float, default=5.0)
+    p.add_argument("--person", help="anonymous id like P01")
+    p.add_argument("--session", help="session name like s01")
+    p.add_argument("--gestures", nargs="+", help="which gestures to cue (default: all except nothing)")
+    p.add_argument("--reps", type=int, default=10, help="cues per gesture (default 10)")
+    p.add_argument("--gap", type=float, default=3.0, help="seconds between cues (default 3)")
+    p.add_argument("--nothing-minutes", type=float, help="record only 'nothing' for this many minutes")
+    p.add_argument("--out", default=str(REPO / "data" / "raw"), help="output folder (default data/raw)")
+    p.add_argument("--overwrite", action="store_true", help="replace an existing session")
+    args = p.parse_args()
+
+    if args.check:
+        check(args)
+    elif not (args.person and args.session):
+        p.error("--person and --session are needed to record (or use --check)")
+    else:
+        record(args)
+
+
+if __name__ == "__main__":
+    main()

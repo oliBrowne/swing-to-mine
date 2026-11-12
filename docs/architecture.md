@@ -170,5 +170,6 @@ data/raw/<person_id>/<session_id>.labels.csv   # start_ms,end_ms,label
 | Oct 26 | Shake = `E` + CURSOR mode; recipe book for crafting | 🟡 proposed default |
 | Oct 26 | Jump = hop only, Auto-Jump on | 🟡 proposed default |
 | Oct 26 | Fallback if behind: real keyboard for walking | 🟡 proposed default |
+| Nov 12 | Until USB serial works (M3), record data over USART2 (PA2/PA3) + a USB-UART adapter at 115200 baud, same text format ([wiring.md](wiring.md)) | 🟡 proposed default |
 
 Background for these: [council-review.md](council-review.md).

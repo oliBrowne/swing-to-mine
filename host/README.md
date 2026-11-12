@@ -2,7 +2,7 @@
 
 PC-side Python scripts. **None of these run during play**: the controller needs no PC software. They're for recording data, debugging and the presentation.
 
-**Status:** nothing here yet.
+**Status:** `record.py` exists (simple version: cues in the terminal, no plan file yet). Tested against a simulated board, not yet against real hardware.
 
 ## Planned scripts
 
@@ -13,16 +13,33 @@ PC-side Python scripts. **None of these run during play**: the controller needs 
 | `label_tool.py` | Optional: review a session and fix label times | if needed |
 | `overlay.py` | Presentation only: shows the detected gesture from `#` debug lines on screen | Week 5, optional |
 
-## `record.py` sketch
+## `record.py`
+
+Board setup first: flash [`firmware/capture`](../firmware/capture/) and wire it as in [docs/wiring.md](../docs/wiring.md).
 
 ```
-python host/record.py --port COM5 --person P01 --session s01 --plan plans/full.yaml
+pip install -r host/requirements.txt
+
+# is the board talking? (keep it still: expect ~100 Hz, ~1.00 g, gyro near 0)
+python host/record.py --port COM5 --check
+
+# 10 of every gesture, shuffled, one cue every ~3 s
+python host/record.py --port COM5 --person P01 --session s01 --reps 10
+
+# only some gestures
+python host/record.py --port COM5 --person P01 --session s02 --gestures hop punch --reps 20
+
+# "nothing" data: move around normally for 5 minutes, no cues
+python host/record.py --port COM5 --person P01 --session s03 --nothing-minutes 5
 ```
 
-- The plan lists cues and counts (for example 40 x `hop`, mixed in random order, with gaps of normal movement).
-- It writes `data/raw/P01/s01.csv` and `data/raw/P01/s01.labels.csv` in the format from [../docs/architecture.md](../docs/architecture.md#recorded-data).
+- The terminal prints `GO: HOP` (and beeps) for each cue. Do the gesture, then move normally until the next one.
+- It writes `data/raw/P01/s01.csv` and `data/raw/P01/s01.labels.csv` in the format from [../docs/architecture.md](../docs/architecture.md#recorded-data). Each cue becomes a label covering the 1.5 s after it.
 - Cue time is a rough label; training snaps it to the motion peak.
+- Gesture names come from [`training/labels.py`](../training/labels.py). Person ids must look like `P01`.
+- Ctrl+C stops early and keeps what was recorded. It won't overwrite an existing session unless you add `--overwrite`.
+- Planned later: a `--plan` file for longer mixed sessions.
 
 ## Setup
 
-Python 3 + `pyserial`, `matplotlib`, `pyyaml`. Pin versions in `requirements.txt` when the first script lands.
+Python 3 + `pip install -r host/requirements.txt` (just `pyserial` for now; `matplotlib` comes with `live_plot.py`).
