@@ -9,6 +9,8 @@
 | Female-to-female jumper wires | 4–5 | any | Board header pins to GY-521 pins |
 | Micro-USB cable | 1 | any | Into the board's USB OTG port (CN5) for the HID controller |
 | Mini-USB cable | 1 | already have | ST-LINK: power, flashing, debugging |
+| USB-to-UART adapter (3.3 V logic: CH340, CP2102 or FTDI) | 1 | Eli has one | Data capture until USB serial works; see [wiring.md](wiring.md) |
+| USB extension cable, 2–3 m | 1–2 | any | Room to swing while recording |
 
 Any listing named **GY-521 MPU-6050** is the same module. The header pins usually ship loose, so they need a quick solder (or buy a pre-soldered one).
 
@@ -28,6 +30,8 @@ Any listing named **GY-521 MPU-6050** is the same module. The header pins usuall
 | SDA | PB9 | I2C1 SDA (shared with the audio DAC) |
 | INT | optional | Any free GPIO with EXTI, for a data-ready interrupt |
 | AD0, XDA, XCL | leave unconnected | AD0 low gives address `0x68` |
+
+Full step-by-step wiring for data capture (gyro + USB-UART adapter, cable length tips, troubleshooting): [wiring.md](wiring.md).
 
 ## First check once it arrives
 

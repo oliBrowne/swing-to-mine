@@ -2,7 +2,7 @@
 
 STM32CubeIDE project for the STM32F4 Discovery (STM32F407VG). See [../docs/architecture.md](../docs/architecture.md) for how the pieces connect.
 
-**Status:** nothing here yet. Start with milestone 1.
+**Status:** [`capture/`](capture/) is a small stand-alone firmware for recording data (MPU-6050 → UART text stream). It builds but hasn't been tested on hardware yet. The main firmware below doesn't exist yet.
 
 ## Planned layout
 
@@ -43,7 +43,7 @@ Directional only; adjust names freely, but keep the boundaries.
 ## Milestones (match the roadmap)
 
 - [ ] **M1 · Board talks:** CubeMX project builds and flashes; LED blinks; button read
-- [ ] **M2 · Sensor:** MPU-6050 read at 100 Hz, streamed over USB serial in the agreed format
+- [ ] **M2 · Sensor:** MPU-6050 read at 100 Hz, streamed over USB serial in the agreed format (UART version written in `capture/`, untested on hardware)
 - [ ] **M3 · USB HID:** board shows up as keyboard + mouse (TinyUSB composite with serial)
 - [ ] **M4 · Dummy model:** any tiny exported model runs on the board; record flash/RAM/time
 - [ ] **M5 · No-ML controller:** modes, air mouse, tilt walk working in Minecraft

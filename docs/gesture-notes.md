@@ -85,4 +85,4 @@ The model runs constantly on live motion, so most of what it sees isn't a gestur
 - **Vary each gesture:** soft and hard, fast and slow, standing and sitting. Keep the **same grip** every time.
 - **Test on someone new:** keep one person's data completely out of training and test on it. That shows the model works for a person it has never seen, which is what the live demo needs.
 - **If it's only Oliver and Eli:** do about 60 reps each and lean on augmentation, but try to recruit 2–3 friends for 25 minutes each.
-- Data comes off the board through the USB serial mode on the micro-USB port (no UART adapter needed).
+- Data comes off the board through the USB serial mode on the micro-USB port (no UART adapter needed). Until that works, use the UART adapter: see [wiring.md](wiring.md).
