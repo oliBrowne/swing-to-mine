@@ -9,7 +9,7 @@ Decided by Oliver on Nov 12 unless marked 🟡 (suggested, not yet agreed).
 | Press | In play (look or move mode) | In inventory |
 |---|---|---|
 | **Single press** | Switch between **move mode** and **look mode** | **Left click** (click to pick up, click again to drop) |
-| **Double press** | Toggle **crouch** (holds `Shift`) | Nothing extra (it's just two clicks) |
+| **Double press** | Toggle **crouch** (taps `Shift`; Minecraft's Sneak is set to **Toggle**) | Nothing extra (it's just two clicks) |
 | **Hold 1 s** | **Open the inventory** (sends `E`) | **Close the inventory** (sends `E`) |
 | 🟡 **Hold 3 s** | Resync: switch the board's state without sending anything (see [When the board and the game disagree](#when-the-board-and-the-game-disagree)) | same |
 
@@ -45,19 +45,18 @@ How each press is recognized:
 |---|---|---|
 | `mode` | `CALIBRATE`, `LOOK`, `MOVE`, `INVENTORY` | what the gyro, tilt and gestures do |
 | `play_mode` | `LOOK` or `MOVE` | which play mode to go back to when the inventory closes |
-| `crouch` | on / off | whether `Shift` should be held while playing |
 | button timer | idle, down, waiting-for-second-press | single vs double vs hold |
 
 What each mode does:
 
-| Mode | Gyro | Tilt walk | Gestures | Button single press | `Shift` | LED |
-|---|---|---|---|---|---|---|
-| `CALIBRATE` | off | off | off | ignored | released | all blinking |
-| `MOVE` | yaw steers camera | `WASD` | on | → `LOOK` | held if crouch on | orange |
-| `LOOK` | aims camera | off | on | → `MOVE` | held if crouch on | green |
-| `INVENTORY` | moves the cursor (lower gain) | off | **paused** | left click | **always released** | blue |
+| Mode | Gyro | Tilt walk | Gestures | Button single press | LED |
+|---|---|---|---|---|---|
+| `CALIBRATE` | off | off | off | ignored | all blinking |
+| `MOVE` | yaw steers camera | `WASD` | on | → `LOOK` | orange |
+| `LOOK` | aims camera | off | on | → `MOVE` | green |
+| `INVENTORY` | moves the cursor (lower gain) | off | **paused** | left click | blue |
 
-🟡 Crouch also lights the red LED (steady) so you can see it's on.
+Crouch isn't tracked by the board: Minecraft remembers it (see [Crouch](#crouch-uses-minecrafts-toggle-setting)).
 
 ```mermaid
 stateDiagram-v2
@@ -75,20 +74,25 @@ Double press (crouch) doesn't change the mode, so it isn't drawn.
 
 ## Edge cases
 
-**Crouch + inventory.** Crouch means the board holds `Shift` down. In the Minecraft inventory, any click with `Shift` held is a shift-click, which moves the whole stack straight to another part of the inventory. So:
+### Crouch uses Minecraft's toggle setting
 
-- Opening the inventory: release `Shift` first, wait a couple of USB reports (~10 ms), then send `E`.
-- Closing it: send `E`, wait ~50 ms, then press `Shift` again if `crouch` is on.
-- The `crouch` flag itself doesn't change, so you come out crouching if you went in crouching.
-- Releasing `Shift` for a moment while standing still on an edge doesn't make you fall (you only slide off while moving), and walking keys are already released when the inventory opens.
+Set **Options → Controls → Sneak: Toggle** on every computer we play on (it's a per-computer setting). Then a double press just taps `Shift` (down, then up ~30 ms later) and Minecraft itself switches crouch on or off. Oliver's call on Nov 12, instead of the board holding `Shift` down.
 
-**Changing mode releases held inputs, except crouch.** Switching move ↔ look releases walking keys and any held left click (mining), but keeps `Shift` if crouching, so you don't stand up at a ledge. Opening the inventory releases everything, including `Shift` (above).
+Why it's simpler:
 
-**Rest pose** (board flat and still, which pauses output) keeps `Shift` held if crouching, for the same reason.
+- `Shift` is never held, so clicks in the inventory can never turn into shift-clicks (which would move whole stacks).
+- The board doesn't have to release and re-press `Shift` around the inventory, during rest pose, or on mode changes.
+- The board doesn't need a crouch flag.
 
-**Minecraft setting:** leave Sneak on **Hold** (the default) in Controls. The board does the toggling itself.
+Catches:
 
-**USB unplug or reset:** everything starts over: `CALIBRATE`, then `LOOK`, crouch off.
+- **If the setting is left on Hold** (the default), a double press only crouches for a split second. Easy to forget on a new laptop, so check it before every demo.
+- The board can't show crouch on an LED, because only the game knows whether you're crouching.
+- **To check by playing:** whether toggled crouch stays on after opening the inventory, dying or flying. We haven't tested this; if the game drops crouch, you just double press again.
+
+**Changing mode releases held inputs** (walking keys, a held left click from mining).
+
+**USB unplug or reset:** the board starts over (`CALIBRATE`, then `LOOK`). Crouch is unaffected because the game holds it.
 
 ## When the board and the game disagree
 

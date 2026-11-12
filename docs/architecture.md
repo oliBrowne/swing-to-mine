@@ -66,7 +66,7 @@ Button details, crouch (double press) and the state the firmware tracks: [contro
 Rules in every mode:
 
 - **Roll never moves the camera.** Roll is reserved for the swap-item twist.
-- **Changing mode releases every held key and click,** except `Shift` while crouching in LOOK/MOVE. Opening the inventory releases `Shift` too ([controls.md](controls.md#edge-cases)).
+- **Changing mode releases every held key and click.** Crouch is a `Shift` tap with Minecraft's Sneak set to Toggle, so nothing is held for it ([controls.md](controls.md#crouch-uses-minecrafts-toggle-setting)).
 - **Rest pose** (board flat or face-down and still for >1 s) pauses all output; the red LED breathes.
 
 ## Gestures → game events
@@ -171,7 +171,7 @@ data/raw/<person_id>/<session_id>.labels.csv   # start_ms,end_ms,label
 | Oct 26 | ~~Shake = `E` + CURSOR mode~~ replaced Nov 12 by the button; recipe book for crafting | superseded |
 | Oct 26 | Jump = hop only, Auto-Jump on | 🟡 proposed default |
 | Oct 26 | Fallback if behind: real keyboard for walking | 🟡 proposed default |
-| Nov 12 | Button: single press = move/look, hold 1 s = open/close inventory, double press = crouch; in the inventory a press = left click, gestures paused ([controls.md](controls.md)) | ✅ decided |
+| Nov 12 | Button: single press = move/look, hold 1 s = open/close inventory, double press = crouch (taps `Shift`, game's Sneak set to Toggle); in the inventory a press = left click, gestures paused ([controls.md](controls.md)) | ✅ decided |
 | Nov 12 | Hold 3 s = resync, auto recalibrate in rest pose ([controls.md](controls.md)) | 🟡 proposed default |
 | Nov 12 | Until USB serial works (M3), record data over USART2 (PA2/PA3) + a USB-UART adapter at 115200 baud, same text format ([wiring.md](wiring.md)) | 🟡 proposed default |
 
