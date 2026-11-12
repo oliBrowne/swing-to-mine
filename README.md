@@ -7,6 +7,7 @@
   <img alt="Model" src="https://img.shields.io/badge/model-int8%20CNN-2f6fd6">
   <img alt="Runtime" src="https://img.shields.io/badge/runtime-ExecuTorch-d9a400">
   <img alt="Status" src="https://img.shields.io/badge/status-in%20progress-5d9b3a">
+  <a href="https://github.com/oliBrowne/swing-to-mine/actions/workflows/ci.yml"><img alt="CI" src="https://github.com/oliBrowne/swing-to-mine/actions/workflows/ci.yml/badge.svg"></a>
 </p>
 
 **Swing to Mine** is a motion controller for Minecraft. You hold an STM32F4 Discovery board like a sword or pickaxe, and a small int8 neural network running **on the microcontroller itself** turns your moves into real key presses and mouse clicks. The board plugs in over USB and shows up as an ordinary keyboard and mouse, so nothing needs to be installed on the PC.

@@ -1,0 +1,46 @@
+# Runs on every push and pull request: checks that the firmware still builds
+# and the Python scripts still load. Takes about a minute.
+name: CI
+
+on:
+  push:
+  pull_request:
+
+jobs:
+  firmware:
+    name: Build firmware
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Install Arm GCC, CMake and Ninja
+        run: sudo apt-get update -qq && sudo apt-get install -y -qq gcc-arm-none-eabi cmake ninja-build
+      - name: Build firmware/capture
+        working-directory: firmware/capture
+        run: |
+          cmake -B build -G Ninja -DCMAKE_TOOLCHAIN_FILE=arm-gcc-toolchain.cmake
+          cmake --build build
+      - name: Keep the built .hex/.bin for download
+        uses: actions/upload-artifact@v4
+        with:
+          name: capture-firmware
+          path: |
+            firmware/capture/build/capture.hex
+            firmware/capture/build/capture.bin
+            firmware/capture/build/capture.elf
+
+  python:
+    name: Check Python scripts
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
+      - name: Install requirements
+        run: pip install -r host/requirements.txt
+      - name: Syntax check host/ and training/
+        run: python -m compileall -q host training
+      - name: Class list loads
+        run: python -c "import sys; sys.path.insert(0, 'training'); from labels import CLASSES; print(CLASSES)"
+      - name: record.py starts
+        run: python host/record.py --help
