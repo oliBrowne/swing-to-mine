@@ -7,7 +7,8 @@ session the way docs/architecture.md describes:
     data/raw/<person>/<session>.labels.csv   start_ms,end_ms,label
 
 While recording, the terminal shows a big box with the gesture to do ("GO: H O P  3 / 10").
-Gestures come in random order, 10 cues per round, with a short break between rounds.
+Gestures come in random order, 20 cues per round. Between rounds it waits for you to
+press Enter, so you can take a break.
 Each cue becomes one row in the labels file, covering the 1.5 s after the cue.
 Anything without a label counts as "nothing", so move around normally between
 cues.
@@ -17,7 +18,7 @@ Examples (use your own COM port; on a Mac it looks like /dev/tty.usbserial-XXXX)
     # 1. check the board is talking (prints a few samples and the sample rate)
     python host/record.py --port COM5 --check
 
-    # 2. record 10 of each gesture in random order, in rounds of 10 cues, one cue every ~3 s
+    # 2. record 10 of each gesture in random order, in rounds of 20 cues, one cue every ~3 s
     python host/record.py --port COM5 --person P01 --session s01 --reps 10
 
     # 3. only some gestures
@@ -228,7 +229,7 @@ def record(args):
         no_data_help(args.port)
 
     # Every gesture `reps` times, all mixed in random order, then split into
-    # rounds of 10 cues with a short break between rounds.
+    # rounds of 20 cues with a break between rounds.
     cues = [g for g in gestures for _ in range(args.reps)]
     random.shuffle(cues)
     size = max(1, args.round_size)
@@ -253,8 +254,19 @@ def record(args):
         else:
             done = 0
             for round_number, cues in enumerate(rounds, 1):
-                # Announce the round and give a short breather. Nothing is
-                # labeled during the break, so it counts as "nothing".
+                # Between rounds, wait until the person says they're ready.
+                # Recording keeps running during the break; nothing is labeled
+                # then, so it counts as "nothing".
+                if round_number > 1:
+                    banner(f"BREAK:  {done} of {total} cues done", "rest as long as you like", fill="=")
+                    try:
+                        answer = input(f"  Press Enter (or y) to start round {round_number} of {len(rounds)}, "
+                                       "or type q to stop here: ")
+                    except EOFError:      # no keyboard attached: stop cleanly
+                        answer = "q"
+                    if answer.strip().lower() in ("q", "n"):
+                        print("Stopping here. Keeping what was recorded.")
+                        break
                 banner(f"ROUND {round_number} of {len(rounds)}:  {len(cues)} random gestures",
                        "do each one once, right after its GO box", fill="=")
                 for n in range(args.round_break, 0, -1):
@@ -270,7 +282,7 @@ def record(args):
                     # Random gap so the gaps between gestures aren't all identical.
                     time.sleep(max(1.6, args.gap + random.uniform(-0.5, 1.0)))
             time.sleep(1.0)  # let the last gesture finish
-            banner("DONE", "you can put the board down", fill="=")
+            banner("DONE", f"{done} of {total} cues recorded. You can put the board down", fill="=")
     except KeyboardInterrupt:
         print("\nStopped early. Keeping what was recorded.")
     finally:
@@ -294,8 +306,8 @@ def main():
     p.add_argument("--session", help="session name like s01")
     p.add_argument("--gestures", nargs="+", help="which gestures to cue (default: all except nothing)")
     p.add_argument("--reps", type=int, default=10, help="cues per gesture (default 10)")
-    p.add_argument("--round-size", type=int, default=10, help="cues per round before a short break (default 10)")
-    p.add_argument("--round-break", type=int, default=5, help="seconds of countdown before each round (default 5)")
+    p.add_argument("--round-size", type=int, default=20, help="cues per round before a break (default 20)")
+    p.add_argument("--round-break", type=int, default=5, help="seconds of countdown once a round starts (default 5)")
     p.add_argument("--gap", type=float, default=3.0, help="seconds between cues (default 3)")
     p.add_argument("--nothing-minutes", type=float, help="record only 'nothing' for this many minutes")
     p.add_argument("--out", default=str(REPO / "data" / "raw"), help="output folder (default data/raw)")
