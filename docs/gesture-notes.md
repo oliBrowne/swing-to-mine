@@ -8,13 +8,9 @@ The board is the whole controller: no keyboard or mouse.
 
 ### Button (blue user button)
 
-| Press | Action |
-|---|---|
-| Short press | Switch between **look mode** and **move mode** (toggle: ✅ decided Oct 26) |
-| Double press | Enter/leave **cursor mode** for inventory and crafting |
-| Long press | Recalibrate (hold the board still for 2 s) |
+Moved to [controls.md](controls.md) (Nov 12): single press = switch move/look, hold 1 s = open/close the inventory, double press = crouch.
 
-The LEDs show the current mode (for example green = look, orange = move).
+The LEDs show the current mode (green = look, orange = move, blue = inventory).
 
 ### Gestures (work in both modes)
 
@@ -33,7 +29,7 @@ Sword vs. mine is the hardest pair: Minecraft sees both as a left click, so the 
 
 - The gyro measures how far the board rotates, and the board sends that as mouse movement. Turn the board 10° right and the camera turns about 10° right, so it feels like pointing.
 - The board never needs to know where the screen is, only how it turns. That avoids the "where is the player's eye relative to the board" problem.
-- **Calibration:** on startup (and on a long press), hold the board still for 2 s so the firmware can measure the gyro's built-in drift and subtract it.
+- **Calibration:** on startup (and 🟡 whenever it rests, see [controls.md](controls.md#open-questions-for-oliver)), hold the board still for 2 s so the firmware can measure the gyro's built-in drift and subtract it.
 - **Swing fix:** a sword swing also rotates the board. Aiming pauses whenever the model detects a gesture, or when the board spins faster than a threshold, so the camera doesn't jerk.
 
 ### Move mode: tilt to walk (default)
@@ -48,7 +44,7 @@ Plan: start with tilt-to-walk so the checkpoint has a working controller, then t
 
 > **Updated Oct 26 after the [council review](council-review.md):** sword + mine become one "strike" behavior (click, then hold while striking), jump is a hop only, and shake (`E` + cursor mode) is a must-have. The current gesture list lives in [architecture.md](architecture.md#gestures--game-events).
 
-Extra gesture ideas: shake to open the inventory (`E`), quick drop of the board to crouch, faster walking to sprint.
+Extra gesture ideas: faster walking to sprint.
 
 ## Gyro
 

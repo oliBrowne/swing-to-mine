@@ -18,7 +18,7 @@ flowchart LR
         DEC["gesture decoder<br/>thresholds, cooldowns"]
         AIR["air mouse<br/>yaw + pitch"]
         WALK["tilt walk<br/>pitch + roll"]
-        MODE["mode manager<br/>LOOK / MOVE / CURSOR"]
+        MODE["mode manager<br/>LOOK / MOVE / INVENTORY"]
         HID["HID out<br/>keyboard + mouse"]
         CDC["USB serial<br/>data + debug"]
     end
@@ -46,26 +46,27 @@ The **mode manager** decides which outputs are live and merges everything into o
 stateDiagram-v2
     [*] --> CALIBRATE: power on
     CALIBRATE --> LOOK: still for 2 s
-    LOOK --> MOVE: short press
-    MOVE --> LOOK: short press
-    LOOK --> CURSOR: shake (sends E) or double press
-    MOVE --> CURSOR: shake (sends E) or double press
-    CURSOR --> LOOK: shake (sends E) or double press
-    LOOK --> CALIBRATE: long press
-    MOVE --> CALIBRATE: long press
+    LOOK --> MOVE: single press
+    MOVE --> LOOK: single press
+    LOOK --> INVENTORY: hold 1 s (sends E)
+    MOVE --> INVENTORY: hold 1 s (sends E)
+    INVENTORY --> LOOK: hold 1 s (sends E), back to the last play mode
+    INVENTORY --> MOVE: hold 1 s (sends E), back to the last play mode
 ```
+
+Button details, crouch (double press) and the state the firmware tracks: [controls.md](controls.md).
 
 | Mode | Air mouse | Tilt walk | Gestures | LED |
 |---|---|---|---|---|
 | CALIBRATE | off | off | off | all blinking |
 | LOOK | yaw + pitch → camera | off | all | green |
 | MOVE | yaw only → camera (steering) | pitch/roll → `WASD` | all | orange |
-| CURSOR | yaw + pitch → cursor, low gain | off | punch = Shift+click, shake = exit | blue |
+| INVENTORY | yaw + pitch → cursor, low gain | off | paused (button = left click) | blue |
 
 Rules in every mode:
 
 - **Roll never moves the camera.** Roll is reserved for the swap-item twist.
-- **Changing mode releases every held key and click.**
+- **Changing mode releases every held key and click,** except `Shift` while crouching in LOOK/MOVE. Opening the inventory releases `Shift` too ([controls.md](controls.md#edge-cases)).
 - **Rest pose** (board flat or face-down and still for >1 s) pauses all output; the red LED breathes.
 
 ## Gestures → game events
@@ -75,11 +76,11 @@ Rules in every mode:
 | `nothing` | anything else, including aiming, tilt-walking, resting | none |
 | `slash` | horizontal swing | **strike** |
 | `chop` | vertical chop | **strike** |
-| `punch` | straight jab forward | right click (Shift+click in CURSOR) |
+| `punch` | straight jab forward | right click |
 | `hop` | whole-body hop | `Space` |
 | `swap_left` | first fast roll to the left | scroll up |
 | `swap_right` | first fast roll to the right | scroll down |
-| `shake` | quick back-and-forth shake | `E` + toggle CURSOR |
+| `shake` | quick back-and-forth shake | none for now (the button opens the inventory; open question in [controls.md](controls.md#open-questions-for-oliver)) |
 
 **Strike logic** (in the decoder, not the model): the first strike sends a left click; another strike within ~600 ms switches to **holding** left click; the hold releases after ~400 ms with no strikes. The camera stays frozen while holding, so the crosshair doesn't drift off the block. `slash` and `chop` stay separate classes only so we can report how well the model tells them apart.
 
@@ -167,9 +168,11 @@ data/raw/<person_id>/<session_id>.labels.csv   # start_ms,end_ms,label
 | Oct 26 | Look/move switch is a **toggle** (short press) | ✅ decided |
 | Oct 26 | Target Minecraft **Java Edition** | ✅ decided (confirm demo laptop has it) |
 | Oct 26 | Sword + mine merged into one "strike" behavior in the decoder | 🟡 proposed default |
-| Oct 26 | Shake = `E` + CURSOR mode; recipe book for crafting | 🟡 proposed default |
+| Oct 26 | ~~Shake = `E` + CURSOR mode~~ replaced Nov 12 by the button; recipe book for crafting | superseded |
 | Oct 26 | Jump = hop only, Auto-Jump on | 🟡 proposed default |
 | Oct 26 | Fallback if behind: real keyboard for walking | 🟡 proposed default |
+| Nov 12 | Button: single press = move/look, hold 1 s = open/close inventory, double press = crouch; in the inventory a press = left click, gestures paused ([controls.md](controls.md)) | ✅ decided |
+| Nov 12 | Hold 3 s = resync, auto recalibrate in rest pose ([controls.md](controls.md)) | 🟡 proposed default |
 | Nov 12 | Until USB serial works (M3), record data over USART2 (PA2/PA3) + a USB-UART adapter at 115200 baud, same text format ([wiring.md](wiring.md)) | 🟡 proposed default |
 
 Background for these: [council-review.md](council-review.md).

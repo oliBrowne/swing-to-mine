@@ -1,0 +1,107 @@
+# Button controls and board states
+
+How the blue user button works, and what the firmware has to remember. This is a **spec**: none of it is built yet. It replaces the button table that used to be in [gesture-notes.md](gesture-notes.md), and the modes in [architecture.md](architecture.md#modes) follow it.
+
+Decided by Oliver on Nov 12 unless marked 🟡 (suggested, not yet agreed).
+
+## The button
+
+| Press | In play (look or move mode) | In inventory |
+|---|---|---|
+| **Single press** | Switch between **move mode** and **look mode** | **Left click** (click to pick up, click again to drop) |
+| **Double press** | Toggle **crouch** (holds `Shift`) | Nothing extra (it's just two clicks) |
+| **Hold 1 s** | **Open the inventory** (sends `E`) | **Close the inventory** (sends `E`) |
+| 🟡 **Hold 3 s** | Resync: switch the board's state without sending anything (see [When the board and the game disagree](#when-the-board-and-the-game-disagree)) | same |
+
+The two play modes are the ones already in the docs:
+
+- **Move mode** (orange LED): tilt the board to walk (`WASD`); turning left/right still steers.
+- **Look mode** (green LED): the gyro aims the camera like a pointer. This is the mode for **placing blocks** and fighting, since you need to aim precisely. Gestures work in both modes.
+
+*Reading of Oliver's words:* "movement mode" = move mode and "placing block mode" = look mode. If that's wrong, only the names change, not the button logic.
+
+There are no right clicks or shift-clicks in the inventory, so no splitting stacks or quick-moving items. That's on purpose to keep it simple.
+
+## Timing
+
+| Rule | Value |
+|---|---|
+| Debounce | ignore changes shorter than ~20 ms |
+| Short press | released within ~400 ms |
+| Double press | second press starts within **~300 ms** of the first release |
+| Hold | still down after **1 s** (LED flashes so you know to let go) |
+| 🟡 Resync hold | still down after 3 s |
+
+How each press is recognized:
+
+- **In play,** a single press can't act straight away, because it might be the first half of a double press. The board waits ~300 ms after release; if no second press comes, it's a single press. So switching move/look lags by about 0.3 s. That's fine for a mode switch.
+- **In the inventory,** double press has no job, so the click goes out **as soon as you let go**. Clicks feel instant.
+- **Holds act when you let go,** not at the 1 s mark. At 1 s the LED flashes ("let go now = inventory"); keep holding to 3 s and it flashes differently ("let go now = resync"). A press released between 400 ms and 1 s does nothing, so you can back out.
+- In the inventory the click is sent on release only if the press was short. That way a 1 s hold to close never also clicks, and Minecraft never sees a long held left button (which would drag-split a stack across slots).
+
+## State the firmware tracks
+
+| State | Values | Why |
+|---|---|---|
+| `mode` | `CALIBRATE`, `LOOK`, `MOVE`, `INVENTORY` | what the gyro, tilt and gestures do |
+| `play_mode` | `LOOK` or `MOVE` | which play mode to go back to when the inventory closes |
+| `crouch` | on / off | whether `Shift` should be held while playing |
+| button timer | idle, down, waiting-for-second-press | single vs double vs hold |
+
+What each mode does:
+
+| Mode | Gyro | Tilt walk | Gestures | Button single press | `Shift` | LED |
+|---|---|---|---|---|---|---|
+| `CALIBRATE` | off | off | off | ignored | released | all blinking |
+| `MOVE` | yaw steers camera | `WASD` | on | → `LOOK` | held if crouch on | orange |
+| `LOOK` | aims camera | off | on | → `MOVE` | held if crouch on | green |
+| `INVENTORY` | moves the cursor (lower gain) | off | **paused** | left click | **always released** | blue |
+
+🟡 Crouch also lights the red LED (steady) so you can see it's on.
+
+```mermaid
+stateDiagram-v2
+    [*] --> CALIBRATE: power on
+    CALIBRATE --> LOOK: still for 2 s
+    LOOK --> MOVE: single press
+    MOVE --> LOOK: single press
+    LOOK --> INVENTORY: hold 1 s (sends E)
+    MOVE --> INVENTORY: hold 1 s (sends E)
+    INVENTORY --> LOOK: hold 1 s (sends E), if play_mode = LOOK
+    INVENTORY --> MOVE: hold 1 s (sends E), if play_mode = MOVE
+```
+
+Double press (crouch) doesn't change the mode, so it isn't drawn.
+
+## Edge cases
+
+**Crouch + inventory.** Crouch means the board holds `Shift` down. In the Minecraft inventory, any click with `Shift` held is a shift-click, which moves the whole stack straight to another part of the inventory. So:
+
+- Opening the inventory: release `Shift` first, wait a couple of USB reports (~10 ms), then send `E`.
+- Closing it: send `E`, wait ~50 ms, then press `Shift` again if `crouch` is on.
+- The `crouch` flag itself doesn't change, so you come out crouching if you went in crouching.
+- Releasing `Shift` for a moment while standing still on an edge doesn't make you fall (you only slide off while moving), and walking keys are already released when the inventory opens.
+
+**Changing mode releases held inputs, except crouch.** Switching move ↔ look releases walking keys and any held left click (mining), but keeps `Shift` if crouching, so you don't stand up at a ledge. Opening the inventory releases everything, including `Shift` (above).
+
+**Rest pose** (board flat and still, which pauses output) keeps `Shift` held if crouching, for the same reason.
+
+**Minecraft setting:** leave Sneak on **Hold** (the default) in Controls. The board does the toggling itself.
+
+**USB unplug or reset:** everything starts over: `CALIBRATE`, then `LOOK`, crouch off.
+
+## When the board and the game disagree
+
+The board can't see the screen. It only *assumes* the inventory opened because it sent `E`. Ways it can get out of sync:
+
+- **Opening a chest, crafting table or furnace.** A punch (right click) on one opens a menu, but the board still thinks it's in play. This will happen a lot.
+- Dying or getting disconnected with the inventory open (the game closes it, the board doesn't know).
+- Someone presses `E` or `Esc` on a real keyboard (only if we use the keyboard fallback for walking).
+
+🟡 **Suggested fix: hold 3 s to resync.** It flips the board between play and inventory **without sending `E`**, releases everything, and flashes the LEDs. So when the LED colour and the screen disagree, hold 3 s and they match again. For a chest: punch it to open it, hold 3 s (board goes to inventory mode), move items, then hold 1 s to close it as normal.
+
+## Open questions for Oliver
+
+1. **Chests and crafting tables:** is "punch, then hold 3 s" OK, or should we look for something smoother? (There's no way for the board to know a menu opened.)
+2. **Recalibrating:** this used to be the long press, which is now the inventory. 🟡 Suggestion: recalibrate the gyro automatically whenever the board sits in rest pose for 2 s, plus at power-on (and the black reset button reboots it). No button needed.
+3. **Shake gesture:** it was going to open the inventory. The button does that now, so 🟡 shake no longer sends `E`. Should we drop the `shake` class from the model (simpler, fewer false triggers) or keep it for something else?

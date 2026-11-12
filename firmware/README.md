@@ -18,7 +18,7 @@ firmware/
       gesture_decoder.c/.h  scores -> game events (thresholds, cooldowns, strike/hold)
       air_mouse.c/.h        yaw + pitch -> mouse dx/dy, delay buffer, auto re-zero
       tilt_walk.c/.h        pitch/roll -> WASD with a deadzone
-      mode_manager.c/.h     CALIBRATE / LOOK / MOVE / CURSOR, button, LEDs, rest pose
+      mode_manager.c/.h     CALIBRATE / LOOK / MOVE / INVENTORY, crouch, button, LEDs, rest pose
       hid_out.c/.h          builds keyboard + mouse reports, release_all()
       usb_stream.c/.h       USB serial: sample stream + '#' debug lines
       timing.c/.h           DWT cycle counter, GPIO debug toggles
@@ -37,7 +37,7 @@ Directional only; adjust names freely, but keep the boundaries.
 | `gesture_decoder` | `decoder_update(scores, imu_energy) -> event` | energy gate, ~0.8 threshold, 2–3 agreeing frames, per-class cooldown, strike → click / hold |
 | `air_mouse` | `air_mouse_update(gyro, mode) -> dx, dy` | yaw + pitch only, never roll; ~60 ms delay buffer that a gesture onset can cancel |
 | `tilt_walk` | `tilt_walk_update(accel) -> keys` | MOVE mode only |
-| `mode_manager` | `mode_on_button(event)`, `mode_on_gesture(event)`, `mode_tick()` | short press toggles LOOK/MOVE, double press or shake = CURSOR, long press = calibrate; releases everything on change |
+| `mode_manager` | `mode_on_button(event)`, `mode_on_gesture(event)`, `mode_tick()` | follows [docs/controls.md](../docs/controls.md): single press LOOK/MOVE, hold 1 s INVENTORY (`E`), double press crouch (`Shift`); releases held inputs on change |
 | `hid_out` | `hid_send(keys, buttons, dx, dy, wheel)`, `hid_release_all()` | one HID interface, report IDs for keyboard and mouse |
 | `usb_stream` | `stream_sample(sample)`, `stream_debug(fmt, ...)` | format in architecture.md "USB serial stream" |
 

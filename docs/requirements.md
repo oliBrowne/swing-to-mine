@@ -12,7 +12,7 @@ A handheld STM32F4 Discovery board (plus an MPU-6050 gyro) that works as a full 
 
 - **R1 · Plug and play:** the board shows up as a USB keyboard + mouse. Nothing to install on the PC.
 - **R2 · Gestures on the chip:** sword swing, mine, place block, jump, swap item left/right and "nothing", classified by an int8 model running on the F407.
-- **R3 · Look and move:** the button switches look mode (air mouse) and move mode; a long press recalibrates; the LEDs show the mode.
+- **R3 · Look and move:** the button switches look mode (air mouse) and move mode, a 1 s hold opens/closes the inventory, a double press crouches; the LEDs show the mode ([controls.md](controls.md)).
 - **R4 · Our own dataset:** recorded from at least 4 people, with a large "nothing" class.
 - **R5 · Feels responsive:** gesture to in-game input in about 100 ms or less.
 - **R6 · Doesn't misfire:** no more than about 1 accidental gesture a minute during normal play.
@@ -22,7 +22,7 @@ A handheld STM32F4 Discovery board (plus an MPU-6050 gyro) that works as a full 
 ## Nice to have
 
 - Walk-in-place detection instead of tilt-to-walk
-- Extra gestures (shake for inventory, crouch, sprint)
+- Extra gestures (sprint)
 - Comparing model sizes: accuracy vs. lag vs. memory
 - A 3D-printed or taped-up "sword" handle for the board
 
