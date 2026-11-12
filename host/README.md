@@ -23,8 +23,11 @@ pip install -r host/requirements.txt
 # is the board talking? (keep it still: expect ~100 Hz, ~1.00 g, gyro near 0)
 python host/record.py --port COM5 --check
 
-# 10 of every gesture, shuffled, one cue every ~3 s
+# every gesture in sets of 10: hop x10, then punch x10, ... one cue every ~3 s
 python host/record.py --port COM5 --person P01 --session s01 --reps 10
+
+# all gestures mixed in random order instead of sets
+python host/record.py --port COM5 --person P01 --session s04 --reps 10 --shuffle
 
 # only some gestures
 python host/record.py --port COM5 --person P01 --session s02 --gestures hop punch --reps 20
@@ -33,7 +36,8 @@ python host/record.py --port COM5 --person P01 --session s02 --gestures hop punc
 python host/record.py --port COM5 --person P01 --session s03 --nothing-minutes 5
 ```
 
-- The terminal prints `GO: HOP` (and beeps) for each cue. Do the gesture, then move normally until the next one.
+- Before each set, a box says which gesture is next and how to do it, with a 5 s countdown. Each cue is a big box like `GO:   H O P     3 / 10` plus a beep. Do the gesture once, then move normally until the next cue.
+- A mistake can't be detected: if you do the wrong gesture, note the cue number it printed so it can be removed later.
 - It writes `data/raw/P01/s01.csv` and `data/raw/P01/s01.labels.csv` in the format from [../docs/architecture.md](../docs/architecture.md#recorded-data). Each cue becomes a label covering the 1.5 s after it.
 - Cue time is a rough label; training snaps it to the motion peak.
 - Gesture names come from [`training/labels.py`](../training/labels.py). Person ids must look like `P01`.

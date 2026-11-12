@@ -6,7 +6,8 @@ session the way docs/architecture.md describes:
     data/raw/<person>/<session>.csv          t_ms,ax,ay,az,gx,gy,gz
     data/raw/<person>/<session>.labels.csv   start_ms,end_ms,label
 
-While recording, the terminal tells you which gesture to do next ("GO: hop").
+While recording, the terminal shows a big box with the gesture to do ("GO: H O P  3 / 10").
+By default you do one gesture 10 times in a row (a "set"), then the next gesture.
 Each cue becomes one row in the labels file, covering the 1.5 s after the cue.
 Anything without a label counts as "nothing", so move around normally between
 cues.
@@ -16,13 +17,16 @@ Examples (use your own COM port; on a Mac it looks like /dev/tty.usbserial-XXXX)
     # 1. check the board is talking (prints a few samples and the sample rate)
     python host/record.py --port COM5 --check
 
-    # 2. record 10 of each gesture, in random order, one cue every ~3 s
+    # 2. record every gesture in sets of 10 (hop x10, then punch x10, ...), one cue every ~3 s
     python host/record.py --port COM5 --person P01 --session s01 --reps 10
 
     # 3. only some gestures
     python host/record.py --port COM5 --person P01 --session s02 --gestures hop punch --reps 20
 
-    # 4. "nothing" data: just move around normally for 5 minutes, no cues
+    # 4. mix all gestures in random order instead of sets
+    python host/record.py --port COM5 --person P01 --session s04 --reps 10 --shuffle
+
+    # 5. "nothing" data: just move around normally for 5 minutes, no cues
     python host/record.py --port COM5 --person P01 --session s03 --nothing-minutes 5
 
 Stop early with Ctrl+C: everything recorded so far is kept.
@@ -49,6 +53,35 @@ COLUMNS = "t_ms,ax,ay,az,gx,gy,gz"
 ACCEL_COUNTS_PER_G = 2048.0      # MPU-6050 at +-16 g
 GYRO_COUNTS_PER_DPS = 16.4       # MPU-6050 at +-2000 deg/s
 LABEL_LENGTH_MS = 1500           # how long after a cue the gesture is assumed to happen
+
+# Shown on screen with each cue so it's clear what motion to do.
+HOW_TO = {
+    "slash": "one sideways sword swing",
+    "chop": "one downward chop",
+    "punch": "one straight jab forward",
+    "hop": "one small hop with your whole body",
+    "swap_left": "one quick wrist twist to the LEFT",
+    "swap_right": "one quick wrist twist to the RIGHT",
+    "shake": "a quick back-and-forth shake",
+}
+
+
+def banner(title, line2="", fill="#"):
+    """Print a big box that is hard to miss, e.g.  H O P   3 / 10."""
+    width = 60
+    print()
+    print(fill * width)
+    print(fill + " " * (width - 2) + fill)
+    for text in (title, line2):
+        if text:
+            print(fill + text.center(width - 2) + fill)
+    print(fill + " " * (width - 2) + fill)
+    print(fill * width)
+
+
+def spaced(name):
+    """hop -> 'H O P', swap_left -> 'S W A P   L E F T' (easier to read from far away)."""
+    return "   ".join(" ".join(word.upper()) for word in name.split("_"))
 
 
 class BoardReader:
@@ -197,11 +230,16 @@ def record(args):
         board.close()
         no_data_help(args.port)
 
-    # Build the cue list: every gesture `reps` times, shuffled.
-    cues = [g for g in gestures for _ in range(args.reps)]
-    random.shuffle(cues)
-    if args.nothing_minutes:
-        cues = []
+    # Default: sets. The same gesture `reps` times in a row, then a short
+    # break, then the next gesture. With --shuffle, every cue is a random gesture.
+    if args.shuffle:
+        cues = [g for g in gestures for _ in range(args.reps)]
+        random.shuffle(cues)
+        sets = [cues]
+    else:
+        random.shuffle(gestures)
+        sets = [[g] * args.reps for g in gestures]
+    total = sum(len(s) for s in sets)
 
     try:
         print("Get ready. Hold the board with your normal grip.")
@@ -219,14 +257,28 @@ def record(args):
                 time.sleep(1)
             print()
         else:
-            for i, gesture in enumerate(cues, 1):
-                start = board.last_t_ms
-                print(f"[{i}/{len(cues)}]  GO: {gesture.upper()}\a")
-                labels_file.write(f"{start},{start + LABEL_LENGTH_MS},{gesture}\n")
-                labels_file.flush()
-                # Random gap so the gaps between gestures aren't all identical.
-                time.sleep(max(1.6, args.gap + random.uniform(-0.5, 1.0)))
+            done = 0
+            for set_number, cues in enumerate(sets, 1):
+                if not args.shuffle:
+                    # Announce the set and give time to read it. Nothing is
+                    # labeled during the break, so it counts as "nothing".
+                    gesture = cues[0]
+                    banner(f"NEXT SET ({set_number} of {len(sets)}):  {spaced(gesture)}  x {len(cues)}",
+                           HOW_TO.get(gesture, ""), fill="=")
+                    for n in range(args.set_break, 0, -1):
+                        print(f"  starting in {n}...")
+                        time.sleep(1)
+                for i, gesture in enumerate(cues, 1):
+                    done += 1
+                    start = board.last_t_ms
+                    banner(f"GO:   {spaced(gesture)}     {i} / {len(cues)}", HOW_TO.get(gesture, ""))
+                    print(f"  (cue {done} of {total})\a")
+                    labels_file.write(f"{start},{start + LABEL_LENGTH_MS},{gesture}\n")
+                    labels_file.flush()
+                    # Random gap so the gaps between gestures aren't all identical.
+                    time.sleep(max(1.6, args.gap + random.uniform(-0.5, 1.0)))
             time.sleep(1.0)  # let the last gesture finish
+            banner("DONE", "you can put the board down", fill="=")
     except KeyboardInterrupt:
         print("\nStopped early. Keeping what was recorded.")
     finally:
@@ -250,6 +302,9 @@ def main():
     p.add_argument("--session", help="session name like s01")
     p.add_argument("--gestures", nargs="+", help="which gestures to cue (default: all except nothing)")
     p.add_argument("--reps", type=int, default=10, help="cues per gesture (default 10)")
+    p.add_argument("--shuffle", action="store_true",
+                   help="mix all gestures in random order instead of sets of the same gesture")
+    p.add_argument("--set-break", type=int, default=5, help="seconds of countdown before each set (default 5)")
     p.add_argument("--gap", type=float, default=3.0, help="seconds between cues (default 3)")
     p.add_argument("--nothing-minutes", type=float, help="record only 'nothing' for this many minutes")
     p.add_argument("--out", default=str(REPO / "data" / "raw"), help="output folder (default data/raw)")
