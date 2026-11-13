@@ -17,8 +17,8 @@ CLASSES = [
 # Look mode only. Jump (move mode) and the movement tilts are handled by simple
 # rules in the firmware, not the model, so they are not recorded or trained.
 
-# Extra motions record.py can cue but the model does not learn (yet). They are
-# only recorded when asked for, e.g. `--gestures jump`. Jump data is for tuning
+# Extra motions record.py cues (in the default rotation since Nov 13) but the
+# model does not learn (yet). Jump data is for tuning
 # the firmware's jump rule, or for training a jump class if the rule isn't
 # reliable enough. Training skips these windows (they are not "nothing").
 OPTIONAL_GESTURES = ["jump"]
