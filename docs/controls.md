@@ -12,12 +12,13 @@ You hold the board **upright**, like a sword handle. There are three modes; the 
 |---|---|---|---|
 | **Tilt forward** ~15° | walk (`W`) | — | — |
 | **Tilt forward** ~40°, held ~0.3 s | sprint (`W` + `Ctrl`) until you come back near upright | — | — |
-| **Tilt back / sideways** | walk back / strafe (`S`, `A`, `D`) | — | — |
+| **Tip the top toward you** | walk back (`S`) | — | — |
+| **Tilt sideways** ~20–25° | strafe left / right (`A`, `D`) | — | — |
 | **Turn left / right** (slowly) | steer the camera | move the camera | move the cursor (slower) |
 | **Point up / down** (slowly) | — (forward tilt means walk) | move the camera | move the cursor (slower) |
 | **Strike** (slash or chop) | — | left click; keep striking = hold left click (mine) | — |
 | **Punch** forward | — | right click (place block, open chest) | — |
-| **Hop** | — (Auto-Jump handles steps) | jump (`Space`) | — |
+| **Flick up** (quick upward jolt) | jump (`Space`) | — | — |
 | **Swap** (quick twist left / right) | — | scroll one hotbar slot left / right | — |
 | **Button: single press** | switch to look mode | switch to move mode | left click (pick up / drop) |
 | **Button: double press** | crouch on/off (`Shift` tap) | crouch on/off (`Shift` tap) | — (just two clicks) |
@@ -25,7 +26,7 @@ You hold the board **upright**, like a sword handle. There are three modes; the 
 | **Button: hold 3 s** | resync (no key sent) | resync (no key sent) | resync (no key sent) |
 | **Set it down** flat and still | pause all output | pause all output | pause all output |
 
-"—" means the motion does nothing in that mode. Gestures (strike, punch, hop, swap) only work in look mode. In the inventory there are no right clicks or shift-clicks (no splitting stacks), on purpose to keep it simple.
+"—" means the motion does nothing in that mode. The model's gestures (strike, punch, swap) only work in look mode; jump only works in move mode. In the inventory there are no right clicks or shift-clicks (no splitting stacks), on purpose to keep it simple.
 
 *Reading of Oliver's words:* "movement mode" = move mode, "placing block mode" = look mode.
 
@@ -35,7 +36,7 @@ You hold the board **upright**, like a sword handle. There are three modes; the 
 |---|---|---|
 | Controls → Sneak | **Toggle** | the board only taps `Shift` |
 | Controls → Sprint | **Hold** (default) | the board holds `Ctrl` |
-| Auto-Jump | **On** | no hop gesture in move mode |
+| Auto-Jump | **On** | steps up single blocks without flicking |
 
 These are per computer, so they need setting on any new laptop.
 
@@ -56,16 +57,25 @@ Works like a Wii remote / air mouse. The gyro measures how fast you rotate the b
 
 **Zeroing on entry.** Every time you switch into move mode, the board saves its current angle as "neutral" and measures tilt from there. Hold it still for about 0.2 s after the switch; orange blinks once to confirm. You don't need to hold it perfectly straight, and slow drift is cleared on every switch.
 
-| Tilt forward from neutral | Keys held | Game does |
+Poses from Oliver's photos (Nov 13), board upright, angles measured from neutral:
+
+| Pose | Keys held | Game does |
 |---|---|---|
-| less than ~15° (*tune*) | nothing | stand still |
-| ~15° or more | `W` | walk |
-| ~40° or more (*tune*), held ~0.3 s | `W` + `Ctrl` | sprint |
+| upright, still (within ~15°) | nothing | stand still (idle) |
+| small forward tip, ~15° (*tune*) | `W` | walk |
+| big forward lean, ~40° (*tune*), held ~0.3 s | `W` + `Ctrl` | sprint |
+| top tipped back toward you, ~15° (*tune*) | `S` | walk back |
+| tilted left / right, ~20–25° (*tune*) | `A` / `D` | strafe |
+| quick upward flick (a motion, not a pose) | `Space` tap | jump |
+
+Forward/back and sideways combine (e.g. `W` + `A` to walk diagonally). Strafing triggers at ~20–25°, well short of rolling the board flat in your palm, which is hard on the wrist while playing.
 
 - **Big gap between walk and sprint** so sprinting takes a clear lean and never happens by accident; the 0.3 s wait stops a quick wobble from starting one.
 - **Sprint stays on until you're back under ~15°** (`W` lets go). Easing off a bit doesn't stop it, which is how Minecraft sprint works anyway.
-- Tilt back and sideways for `S`, `A`, `D` the same way. Minecraft has no sprinting backwards or sideways.
-- **No gestures in move mode.** Leaning to walk and swinging look alike to the sensor, so gestures are off to avoid false triggers. To fight or build, single press to look mode first.
+- Minecraft has no sprinting backwards or sideways.
+- **Jump is the one gesture in move mode, and only there** (Oliver, Nov 13). It's a sharp upward jolt: 🟡 detected with a simple accelerometer threshold along the board's long axis (*tune*), ~400 ms cooldown, no ML needed. A flick can tip the board for an instant, so tilt has to stay past its angle for a moment (~0.1 s, *tune*) before keys press.
+- **No other gestures in move mode.** Leaning to walk and swinging look alike to the sensor, so strike, punch and swap are off to avoid false triggers. To fight or build, single press to look mode first.
+- 🟡 **Test early: strafe tilt vs. turning.** Tilting sideways (tipping the top left/right) strafes; turning the board like a doorknob steers the camera. They're different motions, but a sloppy turn might also tilt. If it's a problem, raise the strafe angle or shrink steering gain while strafing.
 - **Fallback if sprint-by-tilt feels bad:** a quick forward flick starts sprinting.
 
 ## The button
@@ -156,6 +166,6 @@ Other rules:
 
 ## Open questions
 
-1. **Jumping while walking:** gestures are off in move mode, so the only jumping there is Auto-Jump (steps up single blocks). Fine for walking around, but you can't jump gaps or two-block climbs without switching to look mode. Allow the hop gesture in move mode too, or leave it?
+1. **Jump and the model:** if jump is a simple jolt threshold in move mode, the model no longer needs a `hop` class, and we could skip recording jumps. Drop it, or keep jump as an ML class (then the model has to run in move mode just for jump)?
 2. 🟡 **Recalibrating later:** also recalibrate automatically whenever the board rests flat for 2 s? (Zeroing on move-mode entry may make this unnecessary.)
 3. **Shake gesture:** it was going to open the inventory; the button does that now, so shake does nothing. Drop the `shake` class from the model (simpler, fewer false triggers)?
