@@ -15,7 +15,7 @@ PC-side Python scripts. **None of these run during play**: the controller needs 
 
 ## `record.py`
 
-Board setup first: flash [`firmware/capture`](../firmware/capture/) and wire it as in [docs/wiring.md](../docs/wiring.md).
+Board setup first: flash [`firmware/capture`](../firmware/capture/) and wire it as in [docs/wiring.md](../docs/wiring.md). Run these inside the Python venv (one-time setup: [firmware/capture/README.md](../firmware/capture/README.md#python-virtual-environment)).
 
 ```
 pip install -r host/requirements.txt
@@ -43,4 +43,4 @@ python host/record.py --port COM5 --person P01 --session s03 --nothing-minutes 5
 
 ## Setup
 
-Python 3 + `pip install -r host/requirements.txt` (just `pyserial` for now; `matplotlib` comes with `live_plot.py`).
+Python 3 in a virtual environment, then `pip install -r host/requirements.txt` (just `pyserial` for now; `matplotlib` comes with `live_plot.py`). Steps for Linux/WSL and Windows: [firmware/capture/README.md](../firmware/capture/README.md#python-virtual-environment). Newer Ubuntu/WSL refuses `pip install` outside a venv.
