@@ -77,7 +77,7 @@ Rules in every mode:
 | `slash` | horizontal swing | **strike** |
 | `chop` | vertical chop | **strike** |
 | `punch` | straight jab forward | right click (place block, open chest) |
-| `hop` | whole-body hop | `Space` |
+| `hop` | quick upward flick | not used by the look-mode model since Nov 13: jump is move-mode only, 🟡 via a simple jolt threshold ([controls.md](controls.md#move-mode-walking-and-sprinting)) |
 | `swap_left` | quick twist to the left | scroll up (one hotbar slot left) |
 | `swap_right` | quick twist to the right | scroll down (one hotbar slot right) |
 | `shake` | quick back-and-forth shake | none for now (the button opens the inventory; open question in [controls.md](controls.md#open-questions)) |
@@ -169,10 +169,11 @@ data/raw/<person_id>/<session_id>.labels.csv   # start_ms,end_ms,label
 | Oct 26 | Target Minecraft **Java Edition** | ✅ decided (confirm demo laptop has it) |
 | Oct 26 | Sword + mine merged into one "strike" behavior in the decoder | 🟡 proposed default |
 | Oct 26 | ~~Shake = `E` + CURSOR mode~~ replaced Nov 12 by the button; recipe book for crafting | superseded |
-| Oct 26 | Jump = hop only, Auto-Jump on | 🟡 proposed default |
+| Oct 26 | ~~Jump = hop only~~, Auto-Jump on | superseded Nov 13: jump = upward flick in move mode only |
 | Oct 26 | Fallback if behind: real keyboard for walking | 🟡 proposed default |
 | Nov 12 | Button: single press = move/look, hold 1 s = open/close inventory, double press = crouch (taps `Shift`, game's Sneak set to Toggle); in the inventory a press = left click, gestures paused ([controls.md](controls.md)) | ✅ decided |
 | Nov 12 | Board held upright; move mode zeroes its neutral angle on entry and turns gestures off; recordings use the upright grip ([controls.md](controls.md#quick-reference)) | ✅ decided |
+| Nov 13 | Move-mode poses: upright = idle, tip forward = walk, lean further = sprint, tip back = `S`, side tilt ~20–25° = strafe, upward flick = jump (move mode only) ([controls.md](controls.md#move-mode-walking-and-sprinting)) | ✅ decided |
 | Nov 12 | Sprint = steep forward tilt (~40°, held ~0.3 s) in move mode, stays on until level; angles to tune ([controls.md](controls.md#move-mode-walking-and-sprinting)) | ✅ decided |
 | Nov 12 | Hold 3 s = resync when board and game disagree (e.g. after opening a chest); LED scheme in [controls.md](controls.md#leds) | ✅ decided |
 | Nov 12 | Auto recalibrate in rest pose ([controls.md](controls.md)) | 🟡 proposed default |

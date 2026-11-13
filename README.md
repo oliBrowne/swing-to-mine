@@ -34,7 +34,7 @@
 | <img src="docs/img/icon-sword.svg" width="32"> | **Swing sword** | One sharp slash | Left click |
 | <img src="docs/img/icon-pick.svg" width="32"> | **Mine** | Keep chopping | Hold left click |
 | <img src="docs/img/icon-block.svg" width="32"> | **Place block** | Punch forward | Right click |
-| <img src="docs/img/icon-jump.svg" width="32"> | **Jump** | Hop, or flick up | `Space` |
+| <img src="docs/img/icon-jump.svg" width="32"> | **Jump** | Flick up (in move mode) | `Space` |
 | <img src="docs/img/icon-swap.svg" width="32"> | **Swap item** | Twist your wrist left / right | Scroll wheel |
 | <img src="docs/img/icon-idle.svg" width="32"> | **Idle** | Anything else | Nothing |
 | <img src="docs/img/icon-tilt.svg" width="32"> | **Look / move** | Rotate the board to look; tilt to walk in move mode | Mouse movement / `WASD` |

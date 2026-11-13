@@ -19,7 +19,7 @@ The LEDs show the current mode (green = look, orange = move, blue = inventory).
 | Swing sword | One sharp slash | Left click |
 | Mine | Keep chopping | Hold left click |
 | Place block | Punch forward | Right click |
-| Jump | Hop, or flick up | `Space` |
+| Jump | Flick up (move mode only, see [controls.md](controls.md#move-mode-walking-and-sprinting)) | `Space` |
 | Swap item left / right | Twist wrist left / right | Scroll wheel up / down |
 | Nothing | Any other motion | Nothing |
 
@@ -64,7 +64,7 @@ We're using an **MPU-6050 (GY-521 breakout)**: cheap, very well documented, and 
 |---|---|---|
 | Swing sword | 40 | One slash per clip |
 | Place block | 40 | One punch per clip |
-| Jump | 40 | Mix hops and flicks |
+| Jump | 40 | Upward flicks. 🟡 May not be needed if jump uses a simple threshold ([open question](controls.md#open-questions)) |
 | Swap left | 40 | Separate class from swap right |
 | Swap right | 40 | Separate class from swap left |
 | Mine | 20 clips | Chop continuously for 3–4 s per clip |
