@@ -54,11 +54,14 @@ COLUMNS = "t_ms,ax,ay,az,gx,gy,gz"
 ACCEL_COUNTS_PER_G = 2048.0      # MPU-6050 at +-16 g
 GYRO_COUNTS_PER_DPS = 16.4       # MPU-6050 at +-2000 deg/s
 LABEL_LENGTH_MS = 1500           # how long after a cue the gesture is assumed to happen
+# Mine is continuous chopping (it holds left click while you keep chopping), so
+# its label is longer and the next cue waits a bit more.
+LABEL_LENGTH_MS_FOR = {"mine": 2500}
 
 # Shown on screen with each cue so it's clear what motion to do.
 HOW_TO = {
     "sword": "one SIDE SWIPE, like swinging a sword",
-    "mine": "one PICKAXE ARC: tip forward and down, then back up",
+    "mine": "keep CHOPPING (pickaxe swings) for ~2 s",
     "place": "one straight JAB forward, NO tilt",
     "swap_left": "one quick hotbar flick to the LEFT",
     "swap_right": "one quick hotbar flick to the RIGHT",
@@ -286,10 +289,12 @@ def record(args):
                     start = board.last_t_ms
                     banner(f"GO:   {spaced(SHOWN_AS.get(gesture, gesture))}     {i} / {len(cues)}", HOW_TO.get(gesture, ""))
                     print(f"  (cue {done} of {total})\a")
-                    labels_file.write(f"{start},{start + LABEL_LENGTH_MS},{gesture}\n")
+                    length = LABEL_LENGTH_MS_FOR.get(gesture, LABEL_LENGTH_MS)
+                    labels_file.write(f"{start},{start + length},{gesture}\n")
                     labels_file.flush()
                     # Random gap so the gaps between gestures aren't all identical.
-                    time.sleep(max(1.6, args.gap + random.uniform(-0.5, 1.0)))
+                    time.sleep(max(1.6, args.gap + random.uniform(-0.5, 1.0))
+                               + (length - LABEL_LENGTH_MS) / 1000)
             time.sleep(1.0)  # let the last gesture finish
             banner("DONE", f"{done} of {total} cues recorded. You can put the board down", fill="=")
     except KeyboardInterrupt:
