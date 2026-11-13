@@ -9,7 +9,9 @@
 person, repeat for each person. That is the honest number, because the real
 test is a stranger picking up the board.
 
-Saves training/out/gesture_<width>.pt (weights + class list + input scaling).
+    python training/train.py --pool avg      # the first model's pooling (default: max)
+
+Saves training/out/gesture_<width>.pt (weights + class list + pooling + input scaling).
 """
 
 from __future__ import annotations
@@ -24,7 +26,7 @@ from torch import nn
 
 sys.path.insert(0, str(Path(__file__).resolve().parent))
 from dataset import SCALE, class_list, load_all  # noqa: E402
-from model import WIDTHS, GestureNet, count_parameters  # noqa: E402
+from model import POOLS, WIDTHS, GestureNet, count_parameters  # noqa: E402
 
 OUT = Path(__file__).resolve().parent / "out"
 MIN_TEST_WINDOWS = 200      # people with less data than this are train-only
@@ -48,9 +50,9 @@ def augment(x: torch.Tensor) -> torch.Tensor:
     return torch.cat([R @ x[:, :3], R @ x[:, 3:]], dim=1)
 
 
-def fit(X, y, n_classes, width, epochs, seed):
+def fit(X, y, n_classes, width, epochs, seed, pool="max"):
     torch.manual_seed(seed)
-    model = GestureNet(n_classes, width)
+    model = GestureNet(n_classes, width, pool)
     X, y = torch.from_numpy(X), torch.from_numpy(y)
 
     # Rare classes count more, so "nothing" (most of the data) cannot drown them.
@@ -98,6 +100,7 @@ def report(name, truth, guess, classes):
 def main():
     ap = argparse.ArgumentParser(description=__doc__.split("\n")[0])
     ap.add_argument("--width", choices=list(WIDTHS), default="small")
+    ap.add_argument("--pool", choices=list(POOLS), default="max", help="pooling over time (see model.py)")
     ap.add_argument("--epochs", type=int, default=30)
     ap.add_argument("--seed", type=int, default=0)
     ap.add_argument("--with-jump", action="store_true", help="jump as a 7th class")
@@ -107,7 +110,8 @@ def main():
     classes = class_list(args.with_jump)
     X, y, person, _, _ = load_all(args.with_jump)
     print(f"{len(X)} windows from {', '.join(sorted(set(person)))}, classes: {', '.join(classes)}")
-    print(f"model '{args.width}': {count_parameters(GestureNet(len(classes), args.width))} parameters")
+    print(f"model '{args.width}', {args.pool} pooling: "
+          f"{count_parameters(GestureNet(len(classes), args.width, args.pool))} parameters")
 
     recalls = []
     for who in sorted(set(person)):
@@ -117,7 +121,7 @@ def main():
             continue
         if len(set(person[~test])) == 0:
             continue
-        model = fit(X[~test], y[~test], len(classes), args.width, args.epochs, args.seed)
+        model = fit(X[~test], y[~test], len(classes), args.width, args.epochs, args.seed, args.pool)
         recalls.append(report(f"never saw {who}", y[test], predict(model, X[test]), classes))
 
     if recalls:
@@ -126,11 +130,11 @@ def main():
               + ", ".join(f"{c} {100 * r:.0f}%" for c, r in zip(classes, mean)))
 
     if not args.no_save:
-        model = fit(X, y, len(classes), args.width, args.epochs, args.seed)
+        model = fit(X, y, len(classes), args.width, args.epochs, args.seed, args.pool)
         OUT.mkdir(exist_ok=True)
         path = OUT / f"gesture_{args.width}.pt"
-        torch.save({"state_dict": model.state_dict(), "classes": classes,
-                    "width": args.width, "input_scale": SCALE.tolist()}, path)
+        torch.save({"state_dict": model.state_dict(), "classes": classes, "width": args.width,
+                    "pool": args.pool, "input_scale": SCALE.tolist()}, path)
         print(f"\ntrained on everyone, saved {path.relative_to(Path.cwd()) if path.is_relative_to(Path.cwd()) else path}")
 
 

@@ -18,9 +18,10 @@ The int8 version changes the layers' form, not their maths:
   * batch norm is folded into the convolutions;
   * each Conv1d becomes a Conv2d with a (1, k) kernel on a [1, 6, 1, 100]
     channels-last input, because the CMSIS-NN ops are 2D and channels-last;
-  * the mean over time becomes AvgPool2d((1, 13)) (13 = time steps left after
-    the three stride-2 convs). ExecuTorch's float mean rejects the
-    channels-last tensor the int8 convs produce; CMSIS-NN runs the pool in int8.
+  * the pooling over time becomes MaxPool2d((1, 13)) or AvgPool2d((1, 13))
+    (13 = time steps left after the three stride-2 convs), which CMSIS-NN runs
+    in int8. (ExecuTorch's float mean rejects the channels-last tensor the int8
+    convs produce.) "avgmax" pooling is float-only for now.
 Then post-training quantization (CortexMQuantizer) calibrated on real windows.
 """
 
@@ -38,7 +39,7 @@ from torch.nn.utils.fusion import fuse_conv_bn_eval
 HERE = Path(__file__).resolve().parent
 sys.path.insert(0, str(HERE))
 from dataset import load_all  # noqa: E402
-from model import GestureNet  # noqa: E402
+from model import GestureNet, load_checkpoint  # noqa: E402
 
 
 def folded(net: GestureNet) -> list[nn.Conv1d]:
@@ -53,19 +54,28 @@ class FoldedNet(nn.Module):
     def __init__(self, net: GestureNet):
         super().__init__()
         self.convs = nn.ModuleList(folded(net))
+        self.pool = net.pool
         self.head = net.head
 
     def forward(self, x):
         for conv in self.convs:
             x = torch.relu(conv(x))
-        return self.head(x.mean(dim=2))
+        if self.pool == "max":
+            x = x.amax(dim=2)
+        elif self.pool == "avg":
+            x = x.mean(dim=2)
+        else:
+            x = torch.cat([x.mean(dim=2), x.amax(dim=2)], dim=1)
+        return self.head(x)
 
 
 class GestureNet2d(nn.Module):
-    """int8 version: Conv2d (1, k) + AvgPool2d, input [B, 6, 1, 100] channels-last."""
+    """int8 version: Conv2d (1, k) + Max/AvgPool2d, input [B, 6, 1, 100] channels-last."""
 
     def __init__(self, net: GestureNet):
         super().__init__()
+        if net.pool == "avgmax":
+            raise SystemExit("avgmax pooling has no int8 export yet: use --float, or train with --pool max")
         layers = []
         for c in folded(net):
             c2 = nn.Conv2d(c.in_channels, c.out_channels, (1, c.kernel_size[0]),
@@ -74,7 +84,7 @@ class GestureNet2d(nn.Module):
             c2.bias.data = c.bias.data.clone()
             layers += [c2, nn.ReLU()]
         self.features = nn.Sequential(*layers)
-        self.pool = nn.AvgPool2d((1, 13))
+        self.pool = nn.MaxPool2d((1, 13)) if net.pool == "max" else nn.AvgPool2d((1, 13))
         self.head = net.head
 
     def forward(self, x):
@@ -118,11 +128,9 @@ def main():
     import executorch.exir as exir
     from executorch.exir import ExecutorchBackendConfig
 
-    ck = torch.load(HERE / "out" / f"gesture_{args.width}.pt", map_location="cpu", weights_only=False)
+    net, ck = load_checkpoint(HERE / "out" / f"gesture_{args.width}.pt")
     classes = ck["classes"]
-    net = GestureNet(len(classes), ck["width"])
-    net.load_state_dict(ck["state_dict"])
-    net.eval()
+    print(f"model '{ck['width']}', {net.pool} pooling")
 
     X, y, *_ = load_all()
     Xt = torch.from_numpy(X)
