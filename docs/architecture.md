@@ -75,14 +75,14 @@ Rules in every mode:
 |---|---|---|
 | `nothing` | anything else, including slow pointing/looking, resting, fidgeting | none |
 | `sword` | side swipe, like swinging a sword | one left click |
-| `mine` | arched pickaxe swing: tip forward and down, then back up | **hold** left click |
+| `mine` | continuous chopping (repeated pickaxe swings) | **hold** left click |
 | `place` | straight jab forward, no tilt | right click (place block, open chest) |
 | `swap_left` | quick hotbar flick to the left | scroll up (one hotbar slot left) |
 | `swap_right` | quick hotbar flick to the right | scroll down (one hotbar slot right) |
 
 The model only covers **look mode**. Jump (an upward flick in move mode) and the movement tilts are simple rules in the firmware, so they aren't recorded or trained. Shake was dropped (the button opens the inventory).
 
-**Mine hold logic** (in the decoder, not the model): a `mine` starts holding left click; another `mine` within ~600 ms keeps it held; the hold releases after ~400 ms with no more. The camera stays frozen while holding, so the crosshair doesn't drift off the block. A `sword` is a single click and never holds.
+**Mine hold logic** (in the decoder, not the model): the model runs continuously on a sliding window, so while you keep chopping it keeps outputting `mine`. The first `mine` starts holding left click; another `mine` within ~600 ms keeps it held; the hold releases after ~400 ms with no more. The camera stays frozen while holding, so the crosshair doesn't drift off the block. A `sword` is a single click and never holds.
 
 Recordings made before Nov 13 used the old names `slash`, `chop`, `punch` (now `sword`, `mine`, `place`); `training/labels.py` has the mapping. Old `hop` and `shake` labels are skipped.
 
