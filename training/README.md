@@ -2,7 +2,17 @@
 
 Everything from recorded sessions to the model file the firmware runs.
 
-**Status:** only `labels.py` exists (the single source of truth for classes).
+**Status (Nov 13):** `labels.py`, `dataset.py`, `model.py` and `train.py` exist. The rest of the table below is still planned.
+
+## Try it
+
+```
+pip install -r training/requirements.txt
+python training/dataset.py      # how many windows per person and gesture
+python training/train.py        # test on each person in turn, then save training/out/gesture_small.pt
+```
+
+First result (Nov 13, 2 people, 5426 windows, `small` model = 6,774 parameters, float, on the PC): tested on a person the model never saw, 95% of windows right (nothing 97, sword 91, mine 94, place 96, swap_left 95, swap_right 92). With `--with-jump`: jump 92, but place and jump get mixed up for some jumps. This is per 1 s window on cut-out gestures, not yet false triggers per minute on a live stream, and not yet on the board.
 
 ## Pipeline
 
@@ -43,4 +53,4 @@ flowchart LR
 
 ## Setup
 
-Python 3, PyTorch, NumPy, pandas, and the ExecuTorch version from Lab 3. Pin versions in `requirements.txt` when the first script lands.
+Python 3, PyTorch, NumPy, pandas (`training/requirements.txt`). Export will also need the ExecuTorch version from Lab 3.
