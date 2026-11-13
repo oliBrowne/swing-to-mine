@@ -103,6 +103,7 @@ class BoardReader:
         self.ser = serial.Serial(port, baud, timeout=0.2)
         self.on_sample = on_sample
         self.last_t_ms = None
+        self.last_rx = None        # computer time of the newest sample
         self.samples = 0
         self.gaps = 0
         self.info_line = None
@@ -140,6 +141,7 @@ class BoardReader:
                 elif step > 15:
                     self.gaps += 1            # a sample was lost (expected step is 10 ms)
             self.last_t_ms = t_ms
+            self.last_rx = time.time()
             self.samples += 1
             self.on_sample(t_ms, values)
 
@@ -150,6 +152,10 @@ class BoardReader:
                 return True
             time.sleep(0.05)
         return False
+
+    def stalled(self, seconds=1.0):
+        """True if the board hasn't sent a sample for `seconds` (unplugged, reset or crashed)."""
+        return self.last_rx is None or time.time() - self.last_rx > seconds
 
     def close(self):
         self.running = False
@@ -238,6 +244,11 @@ def record(args):
     print(f"Listening on {args.port}...")
     if not board.wait_for_data():
         board.close()
+        # Don't leave empty session files behind.
+        data_file.close()
+        labels_file.close()
+        data_path.unlink(missing_ok=True)
+        labels_path.unlink(missing_ok=True)
         no_data_help(args.port)
 
     # Every gesture `reps` times, all mixed in random order, then split into
@@ -285,6 +296,8 @@ def record(args):
                     print(f"  starting in {n}...")
                     time.sleep(1)
                 for i, gesture in enumerate(cues, 1):
+                    if board.stalled():
+                        break
                     done += 1
                     start = board.last_t_ms
                     banner(f"GO:   {spaced(SHOWN_AS.get(gesture, gesture))}     {i} / {len(cues)}", HOW_TO.get(gesture, ""))
@@ -295,6 +308,13 @@ def record(args):
                     # Random gap so the gaps between gestures aren't all identical.
                     time.sleep(max(1.6, args.gap + random.uniform(-0.5, 1.0))
                                + (length - LABEL_LENGTH_MS) / 1000)
+                if board.stalled():
+                    # The board stopped sending (cable bumped, reset button, crash).
+                    # Cues after this point would have no data, so stop here.
+                    banner("!!  BOARD STOPPED SENDING DATA  !!",
+                           "check the cable, then start a NEW session", fill="!")
+                    print(f"  Stopped after cue {done} of {total}. Everything before that is saved.")
+                    break
             time.sleep(1.0)  # let the last gesture finish
             banner("DONE", f"{done} of {total} cues recorded. You can put the board down", fill="=")
     except KeyboardInterrupt:
