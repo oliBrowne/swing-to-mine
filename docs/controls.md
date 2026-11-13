@@ -15,8 +15,9 @@ You hold the board **upright**, like a sword handle. There are three modes; the 
 | **Tilt back / sideways** | walk back / strafe (`S`, `A`, `D`) | — | — |
 | **Turn left / right** (slowly) | steer the camera | move the camera | move the cursor (slower) |
 | **Point up / down** (slowly) | — (forward tilt means walk) | move the camera | move the cursor (slower) |
-| **Strike** (slash or chop) | — | left click; keep striking = hold left click (mine) | — |
-| **Punch** forward | — | right click (place block, open chest) | — |
+| **Sword**: side swipe, board upright | — | one left click | — |
+| **Mine**: pickaxe arc forward and down | — | hold left click (keep mining = keep holding) | — |
+| **Place**: straight jab forward, no tilt | — | right click (place block, open chest) | — |
 | **Hop** | — (Auto-Jump handles steps) | jump (`Space`) | — |
 | **Swap** (quick twist left / right) | — | scroll one hotbar slot left / right | — |
 | **Button: single press** | switch to look mode | switch to move mode | left click (pick up / drop) |
@@ -25,7 +26,7 @@ You hold the board **upright**, like a sword handle. There are three modes; the 
 | **Button: hold 3 s** | resync (no key sent) | resync (no key sent) | resync (no key sent) |
 | **Set it down** flat and still | pause all output | pause all output | pause all output |
 
-"—" means the motion does nothing in that mode. Gestures (strike, punch, hop, swap) only work in look mode. In the inventory there are no right clicks or shift-clicks (no splitting stacks), on purpose to keep it simple.
+"—" means the motion does nothing in that mode. Gestures (sword, mine, place, hop, swap) only work in look mode. In the inventory there are no right clicks or shift-clicks (no splitting stacks), on purpose to keep it simple.
 
 *Reading of Oliver's words:* "movement mode" = move mode, "placing block mode" = look mode.
 

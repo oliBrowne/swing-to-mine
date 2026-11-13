@@ -73,16 +73,18 @@ Rules in every mode:
 
 | Model class | Motion | Decoder output |
 |---|---|---|
-| `nothing` | anything else, including aiming, tilt-walking, resting | none |
-| `slash` | horizontal swing | **strike** |
-| `chop` | vertical chop | **strike** |
-| `punch` | straight jab forward | right click (place block, open chest) |
-| `hop` | whole-body hop | `Space` |
-| `swap_left` | quick twist to the left | scroll up (one hotbar slot left) |
-| `swap_right` | quick twist to the right | scroll down (one hotbar slot right) |
-| `shake` | quick back-and-forth shake | none for now (the button opens the inventory; open question in [controls.md](controls.md#open-questions)) |
+| `nothing` | anything else, including slow pointing/looking, resting, fidgeting | none |
+| `sword` | side swipe, board stays upright | one left click |
+| `mine` | arched pickaxe swing: tip forward and down, then back up | **hold** left click |
+| `place` | straight jab forward, no tilt | right click (place block, open chest) |
+| `swap_left` | quick hotbar flick to the left | scroll up (one hotbar slot left) |
+| `swap_right` | quick hotbar flick to the right | scroll down (one hotbar slot right) |
 
-**Strike logic** (in the decoder, not the model): the first strike sends a left click; another strike within ~600 ms switches to **holding** left click; the hold releases after ~400 ms with no strikes. The camera stays frozen while holding, so the crosshair doesn't drift off the block. `slash` and `chop` stay separate classes only so we can report how well the model tells them apart.
+The model only covers **look mode**. Jump (an upward flick in move mode) and the movement tilts are simple rules in the firmware, so they aren't recorded or trained. Shake was dropped (the button opens the inventory).
+
+**Mine hold logic** (in the decoder, not the model): a `mine` starts holding left click; another `mine` within ~600 ms keeps it held; the hold releases after ~400 ms with no more. The camera stays frozen while holding, so the crosshair doesn't drift off the block. A `sword` is a single click and never holds.
+
+Recordings made before Nov 13 used the old names `slash`, `chop`, `punch` (now `sword`, `mine`, `place`); `training/labels.py` has the mapping. Old `hop` and `shake` labels are skipped.
 
 ## Timing budget
 

@@ -39,7 +39,7 @@ flowchart LR
 - [ ] float32 vs int8, pruned vs not
 - [ ] Accel only vs accel + gyro
 - [ ] False triggers/min vs amount of "nothing" data
-- [ ] Slash vs chop: can the model tell them apart?
+- [ ] Sword vs mine: can the model tell one side swipe from a pickaxe arc?
 
 ## Setup
 
