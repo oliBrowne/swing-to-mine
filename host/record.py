@@ -24,7 +24,10 @@ Examples (use your own COM port; on a Mac it looks like /dev/tty.usbserial-XXXX)
     # 3. only some gestures
     python host/record.py --port COM5 --person P01 --session s02 --gestures sword mine --reps 20
 
-    # 4. "nothing" data: just move around normally for 5 minutes, no cues
+    # 4. jump (optional, not in the default list)
+    python host/record.py --port COM5 --person P01 --session s04 --gestures jump --reps 20
+
+    # 5. "nothing" data: just move around normally for 5 minutes, no cues
     python host/record.py --port COM5 --person P01 --session s03 --nothing-minutes 5
 
 Stop early with Ctrl+C: everything recorded so far is kept.
@@ -45,7 +48,7 @@ except ImportError:
 
 REPO = Path(__file__).resolve().parent.parent
 sys.path.insert(0, str(REPO / "training"))
-from labels import CLASSES  # noqa: E402  (the one shared class list)
+from labels import CLASSES, OPTIONAL_GESTURES  # noqa: E402  (the one shared class list)
 
 COLUMNS = "t_ms,ax,ay,az,gx,gy,gz"
 ACCEL_COUNTS_PER_G = 2048.0      # MPU-6050 at +-16 g
@@ -59,6 +62,7 @@ HOW_TO = {
     "place": "one straight JAB forward, NO tilt",
     "swap_left": "one quick hotbar flick to the LEFT",
     "swap_right": "one quick hotbar flick to the RIGHT",
+    "jump": "one quick UPWARD flick, board held upright",
 }
 
 
@@ -193,9 +197,10 @@ def check(args):
 
 def record(args):
     gestures = args.gestures or [c for c in CLASSES if c != "nothing"]
-    unknown = [g for g in gestures if g not in CLASSES]
+    allowed = CLASSES + OPTIONAL_GESTURES
+    unknown = [g for g in gestures if g not in allowed]
     if unknown:
-        sys.exit(f"Unknown gesture(s) {unknown}. Choose from: {', '.join(CLASSES)}")
+        sys.exit(f"Unknown gesture(s) {unknown}. Choose from: {', '.join(allowed)}")
     if not (args.person.startswith("P") and args.person[1:].isdigit()):
         sys.exit("Use an anonymous person id like P01, not a name.")
 
@@ -302,7 +307,7 @@ def main():
     p.add_argument("--check-seconds", type=float, default=5.0)
     p.add_argument("--person", help="anonymous id like P01")
     p.add_argument("--session", help="session name like s01")
-    p.add_argument("--gestures", nargs="+", help="which gestures to cue (default: all except nothing)")
+    p.add_argument("--gestures", nargs="+", help="which gestures to cue (default: all model gestures; add jump by naming it)")
     p.add_argument("--reps", type=int, default=10, help="cues per gesture (default 10)")
     p.add_argument("--round-size", type=int, default=20, help="cues per round before a break (default 20)")
     p.add_argument("--round-break", type=int, default=5, help="seconds of countdown once a round starts (default 5)")

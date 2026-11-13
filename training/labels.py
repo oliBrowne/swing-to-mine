@@ -17,6 +17,12 @@ CLASSES = [
 # Look mode only. Jump (move mode) and the movement tilts are handled by simple
 # rules in the firmware, not the model, so they are not recorded or trained.
 
+# Extra motions record.py can cue but the model does not learn (yet). They are
+# only recorded when asked for, e.g. `--gestures jump`. Jump data is for tuning
+# the firmware's jump rule, or for training a jump class if the rule isn't
+# reliable enough. Training skips these windows (they are not "nothing").
+OPTIONAL_GESTURES = ["jump"]
+
 # Names used in recordings made before Nov 13, mapped to the current names.
 # Old "hop" and "shake" labels are not gestures any more. Do not count them as
 # "nothing" either: training should skip those windows.
