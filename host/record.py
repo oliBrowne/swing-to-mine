@@ -6,7 +6,7 @@ session the way docs/architecture.md describes:
     data/raw/<person>/<session>.csv          t_ms,ax,ay,az,gx,gy,gz
     data/raw/<person>/<session>.labels.csv   start_ms,end_ms,label
 
-While recording, the terminal shows a big box with the gesture to do ("GO: H O P  3 / 10").
+While recording, the terminal shows a big box with the gesture to do ("GO: S W O R D  3 / 20").
 Gestures come in random order, 20 cues per round. Between rounds it waits for you to
 press Enter, so you can take a break.
 Each cue becomes one row in the labels file, covering the 1.5 s after the cue.
@@ -22,7 +22,7 @@ Examples (use your own COM port; on a Mac it looks like /dev/tty.usbserial-XXXX)
     python host/record.py --port COM5 --person P01 --session s01 --reps 10
 
     # 3. only some gestures
-    python host/record.py --port COM5 --person P01 --session s02 --gestures hop punch --reps 20
+    python host/record.py --port COM5 --person P01 --session s02 --gestures sword mine --reps 20
 
     # 4. "nothing" data: just move around normally for 5 minutes, no cues
     python host/record.py --port COM5 --person P01 --session s03 --nothing-minutes 5
@@ -54,18 +54,16 @@ LABEL_LENGTH_MS = 1500           # how long after a cue the gesture is assumed t
 
 # Shown on screen with each cue so it's clear what motion to do.
 HOW_TO = {
-    "slash": "one sideways sword swing",
-    "chop": "one downward chop",
-    "punch": "one straight jab forward",
-    "hop": "one small hop with your whole body",
-    "swap_left": "one quick wrist twist to the LEFT",
-    "swap_right": "one quick wrist twist to the RIGHT",
-    "shake": "a quick back-and-forth shake",
+    "sword": "one SIDE SWIPE, board stays upright",
+    "mine": "one PICKAXE ARC: tip forward and down, then back up",
+    "place": "one straight JAB forward, NO tilt",
+    "swap_left": "one quick hotbar flick to the LEFT",
+    "swap_right": "one quick hotbar flick to the RIGHT",
 }
 
 
 def banner(title, line2="", fill="#"):
-    """Print a big box that is hard to miss, e.g.  H O P   3 / 10."""
+    """Print a big box that is hard to miss, e.g.  M I N E   3 / 20."""
     width = 60
     print()
     print(fill * width)
@@ -78,7 +76,7 @@ def banner(title, line2="", fill="#"):
 
 
 def spaced(name):
-    """hop -> 'H O P', swap_left -> 'S W A P   L E F T' (easier to read from far away)."""
+    """mine -> 'M I N E', swap_left -> 'S W A P   L E F T' (easier to read from far away)."""
     return "   ".join(" ".join(word.upper()) for word in name.split("_"))
 
 
