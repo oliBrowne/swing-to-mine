@@ -7,7 +7,7 @@ docs/architecture.md in the same commit.
 
 CLASSES = [
     "nothing",     # any other motion: slow pointing/looking, resting, fidgeting
-    "sword",       # side swipe, board stays upright     -> one left click
+    "sword",       # side swipe, like swinging a sword   -> one left click
     "mine",        # arched pickaxe swing forward + down -> hold left click
     "place",       # straight jab forward, no tilt       -> right click
     "swap_left",   # quick hotbar flick left             -> scroll up
@@ -17,8 +17,8 @@ CLASSES = [
 # Look mode only. Jump (move mode) and the movement tilts are handled by simple
 # rules in the firmware, not the model, so they are not recorded or trained.
 
-# Extra motions record.py can cue but the model does not learn (yet). They are
-# only recorded when asked for, e.g. `--gestures jump`. Jump data is for tuning
+# Extra motions record.py cues (in the default rotation since Nov 13) but the
+# model does not learn (yet). Jump data is for tuning
 # the firmware's jump rule, or for training a jump class if the rule isn't
 # reliable enough. Training skips these windows (they are not "nothing").
 OPTIONAL_GESTURES = ["jump"]

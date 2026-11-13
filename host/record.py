@@ -24,7 +24,7 @@ Examples (use your own COM port; on a Mac it looks like /dev/tty.usbserial-XXXX)
     # 3. only some gestures
     python host/record.py --port COM5 --person P01 --session s02 --gestures sword mine --reps 20
 
-    # 4. jump (optional, not in the default list)
+    # 4. only jumps
     python host/record.py --port COM5 --person P01 --session s04 --gestures jump --reps 20
 
     # 5. "nothing" data: just move around normally for 5 minutes, no cues
@@ -57,13 +57,18 @@ LABEL_LENGTH_MS = 1500           # how long after a cue the gesture is assumed t
 
 # Shown on screen with each cue so it's clear what motion to do.
 HOW_TO = {
-    "sword": "one SIDE SWIPE, board stays upright",
+    "sword": "one SIDE SWIPE, like swinging a sword",
     "mine": "one PICKAXE ARC: tip forward and down, then back up",
     "place": "one straight JAB forward, NO tilt",
     "swap_left": "one quick hotbar flick to the LEFT",
     "swap_right": "one quick hotbar flick to the RIGHT",
     "jump": "one quick UPWARD flick, board held upright",
+    "nothing": "IDLE: hold still or move naturally, NO gesture",
 }
+
+
+# Name shown on screen when it differs from the label saved in the file.
+SHOWN_AS = {"nothing": "idle"}
 
 
 def banner(title, line2="", fill="#"):
@@ -196,7 +201,8 @@ def check(args):
 
 
 def record(args):
-    gestures = args.gestures or [c for c in CLASSES if c != "nothing"]
+    # Default: every model gesture, plus an IDLE cue (labelled "nothing") and jump.
+    gestures = args.gestures or (CLASSES + OPTIONAL_GESTURES)
     allowed = CLASSES + OPTIONAL_GESTURES
     unknown = [g for g in gestures if g not in allowed]
     if unknown:
@@ -278,7 +284,7 @@ def record(args):
                 for i, gesture in enumerate(cues, 1):
                     done += 1
                     start = board.last_t_ms
-                    banner(f"GO:   {spaced(gesture)}     {i} / {len(cues)}", HOW_TO.get(gesture, ""))
+                    banner(f"GO:   {spaced(SHOWN_AS.get(gesture, gesture))}     {i} / {len(cues)}", HOW_TO.get(gesture, ""))
                     print(f"  (cue {done} of {total})\a")
                     labels_file.write(f"{start},{start + LABEL_LENGTH_MS},{gesture}\n")
                     labels_file.flush()
@@ -307,7 +313,7 @@ def main():
     p.add_argument("--check-seconds", type=float, default=5.0)
     p.add_argument("--person", help="anonymous id like P01")
     p.add_argument("--session", help="session name like s01")
-    p.add_argument("--gestures", nargs="+", help="which gestures to cue (default: all model gestures; add jump by naming it)")
+    p.add_argument("--gestures", nargs="+", help="which gestures to cue (default: all of them, including idle and jump)")
     p.add_argument("--reps", type=int, default=10, help="cues per gesture (default 10)")
     p.add_argument("--round-size", type=int, default=20, help="cues per round before a break (default 20)")
     p.add_argument("--round-break", type=int, default=5, help="seconds of countdown once a round starts (default 5)")

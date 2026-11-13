@@ -74,7 +74,7 @@ Rules in every mode:
 | Model class | Motion | Decoder output |
 |---|---|---|
 | `nothing` | anything else, including slow pointing/looking, resting, fidgeting | none |
-| `sword` | side swipe, board stays upright | one left click |
+| `sword` | side swipe, like swinging a sword | one left click |
 | `mine` | arched pickaxe swing: tip forward and down, then back up | **hold** left click |
 | `place` | straight jab forward, no tilt | right click (place block, open chest) |
 | `swap_left` | quick hotbar flick to the left | scroll up (one hotbar slot left) |

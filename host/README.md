@@ -29,7 +29,7 @@ python host/record.py --port COM5 --person P01 --session s01 --reps 10
 # only some gestures
 python host/record.py --port COM5 --person P01 --session s02 --gestures sword mine --reps 20
 
-# jump (optional, not cued unless you ask for it)
+# only jumps
 python host/record.py --port COM5 --person P01 --session s04 --gestures jump --reps 20
 
 # "nothing" data: move around normally for 5 minutes, no cues
