@@ -2,7 +2,42 @@
 
 Measured numbers only, each with how it was measured. Add new results at the top of their section.
 
+## Max pooling instead of average (Nov 13, afternoon)
+
+`training/model.py` now pools the last 13 time steps with **max** instead of the average (`--pool`, default `max`). Retrained with `train.py` (seed 0), exported with `export.py`, run on the board with `firmware/model_test`, measured the same way as the table below:
+
+| Model | ms per inference | Flash | RAM | Output vs PC |
+|---|---|---|---|---|
+| int8, max pooling (CMSIS-NN `quantized_max_pool2d`) | **3.41** (573.0k–573.5k cycles) | 116,912 B | 41,848 B | max diff 0.29 vs float, top gesture 6/6 |
+
+The model file is 21,816 B. It needs 3,008 B of activations and 4,416 B of method memory. Leave one person out, float vs int8 (Python reference ops): **P01 97.0% / 96.9%**, **P02 94.7% / 94.6%**, same answer on 99.9% and 99.4% of windows. The weakest class is swap_right on P02 (84% float, 83% int8). All 5,426 windows with the everyone-model: int8 and float give the same top class on 100.00%.
+
+### Architecture sweep behind the change
+
+Leave one person out (P01, P02 as test people), the same training as `train.py` (30 epochs, augmentation on), **3 seeds per variant**, % of 1 s windows right on the unseen person, mean of the 6 runs. Seed-to-seed spread is about **±0.5 points**, so differences under ~0.7 are noise. Only 2 test people and cut-out gestures: treat this as a direction, not a final number. All variants use only layers the board's int8 path runs. Float, on the PC.
+
+| Variant | Accuracy | Params | Multiply-adds |
+|---|---|---|---|
+| small, average pooling (the first model) | 95.5% | 6,774 | 132k |
+| **small, max pooling (now the default)** | **96.3%** | 6,774 | 132k |
+| small, average + max pooling side by side | 96.6% | 6,966 | 132k |
+| small, avg + max, 60 epochs | 96.7% | 6,966 | 132k |
+| medium widths (24/48/64), average | 96.1% | 22,790 | 394k |
+| medium, avg + max | 96.6% | 23,174 | 395k |
+| bigger kernels 9/7/7 | 95.7% | 9,270 | 180k |
+| 4th conv layer | 95.7% | 11,574 | 192k |
+| residual blocks / dilated residual | 95.6% / 95.8% | 12,486 | 253k |
+| dropout 0.3 before the head | 95.3% | 6,774 | 132k |
+| 60 epochs (average pooling) | 95.7% | 6,774 | 132k |
+| tiny widths (8/16/16) | 94.9% | 2,438 | 50k |
+| depthwise-separable + residual | 94.4% (one seed 91.6) | 10,574 | 151k |
+| no augmentation | 94.6% | 6,774 | 132k |
+
+Max was picked over avg + max because the two are within noise, and max needs no concat op on the board. The weakest class stayed sword or swap_right (~89–91% recall) for every architecture, which points at data more than model size.
+
 ## Model on the board (Nov 13)
+
+(These rows are the first model, with average pooling.)
 
 Setup: STM32F4 Discovery (STM32F407VG) at **168 MHz** (8 MHz crystal → PLL; checked by reading the PLL/clock registers, and the cycle counter advanced 336.0 M cycles in 2,000 SysTick ms). Model: `small` GestureNet (6,774 parameters) trained on P01 + P02 + P03 by `training/train.py`. Firmware: [`firmware/model_test`](../firmware/model_test/), ExecuTorch 1.3.0, `arm-none-eabi-gcc` 13.2.1.
 

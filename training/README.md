@@ -13,7 +13,9 @@ python training/train.py        # test on each person in turn, then save trainin
 python training/export.py       # int8 .pte for the board (needs the ExecuTorch env, see firmware/model_test)
 ```
 
-On the board (Nov 13): the int8 export runs in **3.43 ms** per window at 168 MHz with the same top gesture as float, and int8 accuracy on unseen people equals float (P01 95.4 vs 95.2%, P02 95.2 vs 95.2%). Details in [docs/results.md](../docs/results.md).
+On the board (Nov 13): the int8 export runs in **3.41 ms** per window at 168 MHz with the same top gesture as float, and int8 accuracy on unseen people equals float. Details in [docs/results.md](../docs/results.md).
+
+Architecture (Nov 13 sweep, 3 seeds, ±0.5 points spread between seeds): **max pooling over time** beat the original average pooling (96.3% vs 95.5% on unseen people) at no extra cost, so it's the default now (`--pool max|avg|avgmax`). Bigger, deeper, residual, dilated and depthwise variants were all within noise or worse, so model size isn't the bottleneck: more people's data is. Current model (max pooling, seed 0): P01 97.0%, P02 94.7%; int8 within 0.1 point of float. Old checkpoints (no `pool` entry) still load as average pooling.
 
 First result (Nov 13, 2 people, 5426 windows, `small` model = 6,774 parameters, float, on the PC): tested on a person the model never saw, 95% of windows right (nothing 97, sword 91, mine 94, place 96, swap_left 95, swap_right 92). With `--with-jump`: jump 92, but place and jump get mixed up for some jumps. This is per 1 s window on cut-out gestures, not yet false triggers per minute on a live stream, and not yet on the board.
 
@@ -48,7 +50,7 @@ flowchart LR
 ## Experiments to report (in `docs/results.md`)
 
 - [ ] CNN vs rule baseline: accuracy and false triggers/min on unseen people
-- [ ] Model size sweep: accuracy vs flash/RAM vs inference time
+- [ ] Model size sweep: accuracy vs flash/RAM vs inference time (accuracy part done Nov 13, see results.md; board time only measured for `small`)
 - [ ] float32 vs int8, pruned vs not (int8 vs float done: same accuracy, 3.4 ms vs 64 ms; pruning not yet)
 - [ ] Accel only vs accel + gyro
 - [ ] False triggers/min vs amount of "nothing" data

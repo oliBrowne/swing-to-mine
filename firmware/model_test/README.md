@@ -2,7 +2,7 @@
 
 Milestone M4: runs the trained gesture model on the board with ExecuTorch and measures it. It is a test bench, not the controller: no sensor, no USB. It loops over one real recorded window per gesture, times each inference with the DWT cycle counter, and keeps the results in RAM variables that you read over the ST-LINK, so no UART is needed. The green LED toggles on every inference. If something fails, the red LED blinks.
 
-**Status (Nov 13):** works on the board. The int8 model takes **3.43 ms** per inference at 168 MHz, uses 117 KB of flash and 41 KB of RAM, and picks the same gesture as the float PyTorch model on all 6 test windows. Numbers and how they were measured: [docs/results.md](../../docs/results.md).
+**Status (Nov 13):** works on the board. The int8 model (max pooling) takes **3.41 ms** per inference at 168 MHz, uses 117 KB of flash and 41 KB of RAM, and picks the same gesture as the float PyTorch model on all 6 test windows. Numbers and how they were measured: [docs/results.md](../../docs/results.md).
 
 ## What you need
 
@@ -48,7 +48,7 @@ python scripts/readback.py
 - **`-O3`, not `-Os`.** The Lab 3 ExecuTorch build is `MinSizeRel`. Float went from 152 ms to 64.5 ms just from that. It was already hard-float.
 - **`-fno-tree-loop-distribute-patterns` on any hand-written `memcpy`/`memset`.** At `-O2`/`-O3`, GCC recognises the copy loop and replaces it with a call to `memcpy`, i.e. the function calls itself until the stack runs off the bottom of RAM (HardFault, `MSP` below `0x20000000`). `src/fast_mem.c` is built with that flag (`../capture` does the same).
 - **Patched `quantized_avg_pool2d`.** ExecuTorch 1.3.0's `backends/cortex_m/ops/op_quantized_avg_pool2d.cpp` passes CMSIS-NN no scratch buffer. That's fine on Cortex-M55 (MVE), but the M4's DSP code path needs `output_w × channels × 4` bytes and returns `ARM_CMSIS_NN_ARG_ERROR` (the method fails with error 1). `src/op_quantized_avg_pool2d_patched.cpp` is the same op taking the buffer from the temp allocator, like the conv op does. Linking it replaces the library's version.
-- **Export changes** (in `training/export.py`): Conv1d → Conv2d with a (1, k) kernel on a channels-last `[1, 6, 1, 100]` input (CMSIS-NN ops are 2D), and the mean over time → `AvgPool2d((1, 13))`, because ExecuTorch's float `mean` rejects the channels-last tensor the int8 convs produce. Same maths: the rewrite matches the original model to 3e-6 in float.
+- **Export changes** (in `training/export.py`): Conv1d → Conv2d with a (1, k) kernel on a channels-last `[1, 6, 1, 100]` input (CMSIS-NN ops are 2D), and the pooling over time → `MaxPool2d((1, 13))` (or `AvgPool2d` for `--pool avg` models), because ExecuTorch's float `mean` rejects the channels-last tensor the int8 convs produce. Same maths: the rewrite matches the original model to 3e-6 in float.
 - **Startup** has to turn the FPU on and run C++ constructors: ExecuTorch registers its kernels from constructors. Without them you get `OperatorMissing` (0x14).
 - **Debugging without a UART:** build ExecuTorch with `-DEXECUTORCH_ENABLE_LOGGING=ON` and its log lands in the `g_log` array (`et_pal_emit_log_message` in `main.cpp`). Dump it with OpenOCD: `dump_image log.bin <address of g_log> 1024`.
 
