@@ -10,8 +10,9 @@ You're looking at **Swing to Mine**: a handheld STM32F4 Discovery + MPU-6050 tha
 2. [docs/architecture.md](docs/architecture.md): modules, modes, interfaces, timing, decisions log
 3. [docs/roadmap.md](docs/roadmap.md): what to build this week
 4. [docs/gesture-notes.md](docs/gesture-notes.md): gestures and data collection plan
-5. [docs/council-review.md](docs/council-review.md): why the design looks the way it does
-6. The README in the folder you're working in
+5. [docs/controls.md](docs/controls.md): button, modes, crouch and inventory
+6. [docs/council-review.md](docs/council-review.md): why the design looks the way it does
+7. The README in the folder you're working in
 
 ## Ground rules
 

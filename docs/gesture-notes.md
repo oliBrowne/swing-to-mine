@@ -8,15 +8,11 @@ The board is the whole controller: no keyboard or mouse.
 
 ### Button (blue user button)
 
-| Press | Action |
-|---|---|
-| Short press | Switch between **look mode** and **move mode** (toggle: ✅ decided Oct 26) |
-| Double press | Enter/leave **cursor mode** for inventory and crafting |
-| Long press | Recalibrate (hold the board still for 2 s) |
+Moved to [controls.md](controls.md) (Nov 12): single press = switch move/look, hold 1 s = open/close the inventory, double press = crouch.
 
-The LEDs show the current mode (for example green = look, orange = move).
+The LEDs show the current mode (green = look, orange = move, blue = inventory).
 
-### Gestures (work in both modes)
+### Gestures (look mode only since Nov 12; switched off in move mode, see [controls.md](controls.md#move-mode-walking-and-sprinting))
 
 | Gesture | Motion | Input sent |
 |---|---|---|
@@ -31,9 +27,9 @@ Sword vs. mine is the hardest pair: Minecraft sees both as a left click, so the 
 
 ### Look mode: "air mouse"
 
-- The gyro measures how far the board rotates, and the board sends that as mouse movement. Turn the board 10° right and the camera turns about 10° right, so it feels like pointing.
+- Works like a Wii remote: the gyro measures how fast the board rotates, and that becomes mouse movement. Turn slowly and the camera pans slowly; stop and it stops. Details and thresholds: [controls.md](controls.md#pointing-look-mode-and-inventory).
 - The board never needs to know where the screen is, only how it turns. That avoids the "where is the player's eye relative to the board" problem.
-- **Calibration:** on startup (and on a long press), hold the board still for 2 s so the firmware can measure the gyro's built-in drift and subtract it.
+- **Calibration:** on startup, hold the board still for 1–2 s so the firmware can measure the gyro's built-in drift and subtract it.
 - **Swing fix:** a sword swing also rotates the board. Aiming pauses whenever the model detects a gesture, or when the board spins faster than a threshold, so the camera doesn't jerk.
 
 ### Move mode: tilt to walk (default)
@@ -48,7 +44,7 @@ Plan: start with tilt-to-walk so the checkpoint has a working controller, then t
 
 > **Updated Oct 26 after the [council review](council-review.md):** sword + mine become one "strike" behavior (click, then hold while striking), jump is a hop only, and shake (`E` + cursor mode) is a must-have. The current gesture list lives in [architecture.md](architecture.md#gestures--game-events).
 
-Extra gesture ideas: shake to open the inventory (`E`), quick drop of the board to crouch, faster walking to sprint.
+Sprint is a steeper forward tilt in move mode (decided Nov 12, [controls.md](controls.md#move-mode-walking-and-sprinting)).
 
 ## Gyro
 
@@ -82,7 +78,7 @@ The model runs constantly on live motion, so most of what it sees isn't a gestur
 
 ### Tips
 
-- **Vary each gesture:** soft and hard, fast and slow, standing and sitting. Keep the **same grip** every time.
+- **Vary each gesture:** soft and hard, fast and slow, standing and sitting. Keep the **same grip** every time: the board **upright**, like a sword handle (decided Nov 12, [controls.md](controls.md#quick-reference)).
 - **Test on someone new:** keep one person's data completely out of training and test on it. That shows the model works for a person it has never seen, which is what the live demo needs.
 - **If it's only Oliver and Eli:** do about 60 reps each and lean on augmentation, but try to recruit 2–3 friends for 25 minutes each.
 - Data comes off the board through the USB serial mode on the micro-USB port (no UART adapter needed). Until that works, use the UART adapter: see [wiring.md](wiring.md).

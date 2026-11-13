@@ -30,7 +30,7 @@ Present                                                         ★
 ## Week 2 · Nov 2 – Nov 8 · It's a controller (no ML yet)
 
 - [ ] USB composite HID: the board shows up as a keyboard + mouse · *Oliver*
-- [ ] Button: short press switches look/move, long press recalibrates; LEDs show the mode · *Oliver*
+- [ ] Button per [controls.md](controls.md): single press look/move, hold 1 s inventory, double press crouch; LEDs show the mode · *Oliver*
 - [ ] Look mode: gyro "air mouse" with drift calibration · *Oliver*
 - [ ] Move mode: tilt to walk (or whatever we pick in week 1) · *Oliver*
 - [ ] Record pilot data: about 20 reps of each gesture · *everyone*

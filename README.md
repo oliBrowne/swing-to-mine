@@ -39,7 +39,7 @@
 | <img src="docs/img/icon-idle.svg" width="32"> | **Idle** | Anything else | Nothing |
 | <img src="docs/img/icon-tilt.svg" width="32"> | **Look / move** | Rotate the board to look; tilt to walk in move mode | Mouse movement / `WASD` |
 
-No keyboard or mouse: the board does everything, including looking around (gyro "air mouse") and walking. See [docs/gesture-notes.md](docs/gesture-notes.md) for the control scheme. Telling **sword** apart from **mining** is the interesting ML problem: Minecraft sees both as a left click, so the model has to recognize one slash vs. repeated chopping.
+No keyboard or mouse: the board does everything, including looking around (gyro "air mouse") and walking. See [docs/controls.md](docs/controls.md) for the button (move/look, inventory, crouch) and [docs/gesture-notes.md](docs/gesture-notes.md) for the gestures. Telling **sword** apart from **mining** is the interesting ML problem: Minecraft sees both as a left click, so the model has to recognize one slash vs. repeated chopping.
 
 ## 🗓️ Timeline
 
