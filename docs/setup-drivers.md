@@ -13,6 +13,31 @@ These steps are written so a person or a coding agent can follow them. Steps mar
 
 ---
 
+## Quick start: Windows laptop + STM32F4 Discovery (our setup)
+
+This is the path for a Windows 10/11 laptop (e.g. Eli's HP Victus). The rest of the doc has the details if a step fails.
+
+1. **ST-LINK driver (needed on Windows, for flashing).**
+   🧑 Install **STM32CubeProgrammer** (https://www.st.com/en/development-tools/stm32cubeprog.html, free ST account) and keep the driver option ticked in the installer. Plug the board's **mini-USB** (top of the board) into the laptop. In **Device Manager > Universal Serial Bus devices** it should show as "STM32 STLink" with no ⚠. If it has a ⚠, install ST's **STSW-LINK009** driver (Step 4 below) and replug.
+2. **Flash the capture firmware** with STM32CubeProgrammer: connect with ST-LINK, open `capture.hex`, click *Download*, then press the board's black reset button. Details: [firmware/capture/README.md](../firmware/capture/README.md#flash).
+3. **Plug in the USB-UART adapter** (wired to PA2/PA3/GND per [wiring.md](wiring.md)). The capture firmware sends gyro data out of those pins, **not** through the board's own USB, so the adapter is required.
+4. **Check if Windows already gave it a COM port.** In PowerShell, from the repo folder:
+   ```powershell
+   pip install -r host/requirements.txt
+   python -m serial.tools.list_ports -v
+   ```
+   - A port with a CH340 / CP210x / FTDI USB ID (table in Step 1 below) is listed → **no adapter driver needed**, go to 6.
+   - Nothing new is listed, or Device Manager shows the adapter with a ⚠ under "Other devices" → go to 5.
+   - Ignore any "STLink Virtual COM Port": that's the board, not the adapter.
+5. **Install the adapter driver** for its chip (Step 1 below to identify it, Step 2 for the download page). 🧑 Run the installer, approve the admin prompt, replug the adapter, and run the list command again.
+6. **Test** with the board lying still (use your port number):
+   ```powershell
+   python host/record.py --port COM5 --check
+   ```
+   Expect about 100 Hz, gravity about 1.00 g, gyro near 0 deg/s. If the port opens but no samples arrive, it's wiring, not drivers: see [wiring.md](wiring.md).
+
+---
+
 ## Step 1. Find out which chip your adapter has
 
 The chip name is usually printed on the adapter's board or on its listing (e.g. "CH340G", "CP2102", "FT232RL"). If you can't read it, plug the adapter in and check its USB ID:
@@ -152,6 +177,8 @@ Then flash as described in [firmware/capture/README.md](../firmware/capture/READ
 ---
 
 ## Checklist for a coding agent
+
+On a Windows laptop with the Discovery board, the Quick start at the top is the same flow; this list is the general version.
 
 1. Run `python -m serial.tools.list_ports -v`. If a port with a CH340/CP210x/FTDI/PL2303 USB ID (table in step 1) is listed, **no driver is needed**: skip to 5.
 2. If not, run the OS command from step 1 to get the adapter's USB ID and identify the chip.
