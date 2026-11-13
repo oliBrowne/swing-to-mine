@@ -16,15 +16,23 @@ Decided by Oliver on Nov 12 unless marked 🟡 (suggested, not yet agreed).
 The two play modes are the ones already in the docs:
 
 - **Move mode** (orange LED): tilt the board to walk (`WASD`); turning left/right still steers.
-- **Look mode** (green LED): the gyro aims the camera like a pointer. This is the mode for **placing blocks** and fighting, since you need to aim precisely. Gestures work in both modes.
+- **Look mode** (green LED): the gyro aims the camera like a pointer. This is the mode for **placing blocks** and fighting, since you need to aim precisely. **Gestures only work in look mode** (see below).
 
 *Reading of Oliver's words:* "movement mode" = move mode and "placing block mode" = look mode. If that's wrong, only the names change, not the button logic.
 
 There are no right clicks or shift-clicks in the inventory, so no splitting stacks or quick-moving items. That's on purpose to keep it simple.
 
+## How you hold it
+
+Decided Nov 12: hold the board **upright**, like a sword handle. All tilts are measured from that upright position, and **gesture recordings must use the same upright grip** so the model sees the same axes it will see in play.
+
 ## Move mode: walking and sprinting
 
 Decided Nov 12. The angles are **starting values to tune on the board**.
+
+**Zeroing on entry.** Every time you switch into move mode, the board saves its current angle as "neutral" and measures tilt from there. Hold it still for about 0.2 s after the switch; the orange LED blinks once to confirm. That way you don't need to hold it perfectly straight, and slow drift gets cleared every time you switch. The full gyro calibration at power-on (about 1–2 s held still) stays as well.
+
+**No gestures in move mode.** Leaning to walk and swinging look alike to the sensor, so in move mode the model's gestures (strike, punch, hop, swap item) are switched off to avoid false triggers. To fight or build, single press to look mode first. The 1 s inventory hold, the double press (crouch) and the 3 s resync still work in every mode.
 
 | Tilt forward | Keys held | Game does |
 |---|---|---|
@@ -70,7 +78,7 @@ What each mode does:
 | Mode | Gyro | Tilt walk | Gestures | Button single press | LED |
 |---|---|---|---|---|---|
 | `CALIBRATE` | off | off | off | ignored | spinning |
-| `MOVE` | yaw steers camera | `WASD` | on | → `LOOK` | orange |
+| `MOVE` | yaw steers camera | `WASD` + sprint | **off** | → `LOOK` | orange |
 | `LOOK` | aims camera | off | on | → `MOVE` | green |
 | `INVENTORY` | moves the cursor (lower gain) | off | **paused** | left click | blue |
 
@@ -132,6 +140,7 @@ Feedback patterns, using all four:
 | All four spin while holding | 3 s reached: let go to resync |
 | New mode's LED blinks 3 times | resync done |
 | Current mode's LED blinks twice | double press: crouch tap sent |
+| Orange blinks once | move mode zeroed (neutral angle saved) |
 | Current mode's LED breathes (fades in and out) | rest pose: output paused |
 | Red fast blink, nothing else | something's wrong (e.g. sensor not answering on I2C) |
 

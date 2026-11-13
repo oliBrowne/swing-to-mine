@@ -12,7 +12,7 @@ Moved to [controls.md](controls.md) (Nov 12): single press = switch move/look, h
 
 The LEDs show the current mode (green = look, orange = move, blue = inventory).
 
-### Gestures (work in both modes)
+### Gestures (look mode only since Nov 12; switched off in move mode, see [controls.md](controls.md#move-mode-walking-and-sprinting))
 
 | Gesture | Motion | Input sent |
 |---|---|---|
@@ -78,7 +78,7 @@ The model runs constantly on live motion, so most of what it sees isn't a gestur
 
 ### Tips
 
-- **Vary each gesture:** soft and hard, fast and slow, standing and sitting. Keep the **same grip** every time.
+- **Vary each gesture:** soft and hard, fast and slow, standing and sitting. Keep the **same grip** every time: the board **upright**, like a sword handle (decided Nov 12, [controls.md](controls.md#how-you-hold-it)).
 - **Test on someone new:** keep one person's data completely out of training and test on it. That shows the model works for a person it has never seen, which is what the live demo needs.
 - **If it's only Oliver and Eli:** do about 60 reps each and lean on augmentation, but try to recruit 2–3 friends for 25 minutes each.
 - Data comes off the board through the USB serial mode on the micro-USB port (no UART adapter needed). Until that works, use the UART adapter: see [wiring.md](wiring.md).
