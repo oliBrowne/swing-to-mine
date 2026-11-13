@@ -50,10 +50,38 @@ Pick one:
 
 Then press the black reset button.
 
-## Then record
+## Python virtual environment
+
+The recording script (`host/record.py`) runs on the PC and needs Python 3 with `pyserial`. Install it in a virtual environment: recent Ubuntu (including WSL) refuses a plain `pip install` outside one. Create it once, at the repo root (`.venv/` is already in `.gitignore`):
+
+**Linux / WSL**
 
 ```bash
+sudo apt install python3-venv          # only if `python3 -m venv` says it's missing
+cd swing-to-mine                       # repo root
+python3 -m venv .venv
+source .venv/bin/activate
 pip install -r host/requirements.txt
+```
+
+**Windows (PowerShell)**
+
+```powershell
+cd swing-to-mine
+py -m venv .venv
+.venv\Scripts\Activate.ps1             # if blocked: Set-ExecutionPolicy -Scope CurrentUser RemoteSigned
+pip install -r host/requirements.txt
+```
+
+Your prompt shows `(.venv)` while it's active. Activate it again (`source .venv/bin/activate` or `.venv\Scripts\Activate.ps1`) in every new terminal before recording; `deactivate` leaves it. In VS Code, pick `.venv` with *Python: Select Interpreter*.
+
+If you build in WSL, note that WSL can't see the UART adapter's serial port (`COM5` etc.) unless you forward it with `usbipd`. It's simpler to build in WSL and record from a Windows venv.
+
+## Then record
+
+From the repo root, with the venv active:
+
+```bash
 python host/record.py --port COM5 --check          # is it working?
 python host/record.py --port COM5 --person P01 --session s01 --reps 10
 ```
