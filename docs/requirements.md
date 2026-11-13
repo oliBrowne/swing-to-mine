@@ -22,7 +22,7 @@ A handheld STM32F4 Discovery board (plus an MPU-6050 gyro) that works as a full 
 ## Nice to have
 
 - Walk-in-place detection instead of tilt-to-walk
-- Extra gestures (sprint)
+- Extra gestures
 - Comparing model sizes: accuracy vs. lag vs. memory
 - A 3D-printed or taped-up "sword" handle for the board
 

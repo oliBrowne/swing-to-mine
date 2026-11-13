@@ -22,6 +22,24 @@ The two play modes are the ones already in the docs:
 
 There are no right clicks or shift-clicks in the inventory, so no splitting stacks or quick-moving items. That's on purpose to keep it simple.
 
+## Move mode: walking and sprinting
+
+Decided Nov 12. The angles are **starting values to tune on the board**.
+
+| Tilt forward | Keys held | Game does |
+|---|---|---|
+| less than ~15° | nothing | stand still |
+| ~15° or more | `W` | walk |
+| ~40° or more, held ~0.3 s | `W` + `Ctrl` | sprint |
+
+- **Big gap between walk and sprint** (15° vs 40°), so sprinting takes a clear lean and never happens by accident.
+- **The 0.3 s wait** stops a gesture swing from starting a sprint.
+- **Sprint stays on until the board is back under ~15°** (when `W` lets go). Easing off a bit, or wobbling, doesn't stop it. That's how Minecraft sprint works anyway: once you're sprinting, it keeps going as long as you hold `W`.
+- Leave Minecraft's **Sprint** setting on **Hold** (the default).
+- Tilting back and sideways (`S`, `A`, `D`) works the same as walking; there's no sprint backwards or sideways in Minecraft.
+- Sprint only exists in move mode. Look mode never walks.
+- **Fallback if it feels bad in testing:** a quick forward flick starts sprinting instead of the steep tilt.
+
 ## Timing
 
 | Rule | Value |

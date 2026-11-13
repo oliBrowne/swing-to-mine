@@ -172,6 +172,7 @@ data/raw/<person_id>/<session_id>.labels.csv   # start_ms,end_ms,label
 | Oct 26 | Jump = hop only, Auto-Jump on | 🟡 proposed default |
 | Oct 26 | Fallback if behind: real keyboard for walking | 🟡 proposed default |
 | Nov 12 | Button: single press = move/look, hold 1 s = open/close inventory, double press = crouch (taps `Shift`, game's Sneak set to Toggle); in the inventory a press = left click, gestures paused ([controls.md](controls.md)) | ✅ decided |
+| Nov 12 | Sprint = steep forward tilt (~40°, held ~0.3 s) in move mode, stays on until level; angles to tune ([controls.md](controls.md#move-mode-walking-and-sprinting)) | ✅ decided |
 | Nov 12 | Hold 3 s = resync when board and game disagree (e.g. after opening a chest); LED scheme in [controls.md](controls.md#leds) | ✅ decided |
 | Nov 12 | Auto recalibrate in rest pose ([controls.md](controls.md)) | 🟡 proposed default |
 | Nov 12 | Until USB serial works (M3), record data over USART2 (PA2/PA3) + a USB-UART adapter at 115200 baud, same text format ([wiring.md](wiring.md)) | 🟡 proposed default |
