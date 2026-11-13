@@ -30,6 +30,10 @@ Examples (use your own COM port; on a Mac it looks like /dev/tty.usbserial-XXXX)
     # 5. "nothing" data: just move around normally for 5 minutes, no cues
     python host/record.py --port COM5 --person P01 --session s03 --nothing-minutes 5
 
+    # 6. idle test: look around like in look mode (not dead still) for 3 minutes,
+    #    with a new look-around prompt every few seconds; no gestures
+    python host/record.py --port COM5 --person P01 --session s20 --look-minutes 3
+
 Stop early with Ctrl+C: everything recorded so far is kept.
 """
 
@@ -72,6 +76,25 @@ HOW_TO = {
 
 # Name shown on screen when it differs from the label saved in the file.
 SHOWN_AS = {"nothing": "idle"}
+
+# --look-minutes: idle test where you keep looking around like in look mode
+# (air mouse) instead of holding still. A new prompt every few seconds keeps
+# the motion varied. None of these are gestures: the whole stretch is "nothing".
+LOOK_PROMPTS = [
+    "slowly look LEFT, then back",
+    "slowly look RIGHT, then back",
+    "look UP at the sky, then level",
+    "look DOWN at your feet, then level",
+    "scan the horizon left to right",
+    "aim at a block and hold it, tiny corrections",
+    "follow a mob walking past",
+    "quick glance over your shoulder",
+    "look around freely, like exploring",
+    "turn all the way around",
+    "small aiming wobbles, like lining up a block",
+    "rest your arm, board still in hand",
+]
+LOOK_PROMPT_SECONDS = (4, 8)     # a new prompt every 4-8 s
 
 
 def banner(title, line2="", fill="#"):
@@ -265,7 +288,23 @@ def record(args):
             print(f"  {n}...")
             time.sleep(1)
 
-        if args.nothing_minutes:
+        if args.look_minutes:
+            banner("IDLE TEST:  LOOK AROUND",
+                   f"{args.look_minutes:g} min, like in look mode. NO gestures", fill="=")
+            end = time.time() + args.look_minutes * 60
+            last_prompt = None
+            while time.time() < end and not board.stalled():
+                prompt = random.choice([p for p in LOOK_PROMPTS if p != last_prompt])
+                last_prompt = prompt
+                left = int(end - time.time())
+                print(f"  [{left // 60}:{left % 60:02d} left]  {prompt}")
+                time.sleep(min(random.uniform(*LOOK_PROMPT_SECONDS), max(0.0, end - time.time())))
+            if board.stalled():
+                banner("!!  BOARD STOPPED SENDING DATA  !!",
+                       "check the cable, then start a NEW session", fill="!")
+            else:
+                banner("DONE", "You can put the board down", fill="=")
+        elif args.nothing_minutes:
             print(f"Recording 'nothing' for {args.nothing_minutes} min: aim, walk, rest, "
                   "fidget. Don't do any gestures.")
             end = time.time() + args.nothing_minutes * 60
@@ -344,6 +383,9 @@ def main():
     p.add_argument("--round-break", type=int, default=5, help="seconds of countdown once a round starts (default 5)")
     p.add_argument("--gap", type=float, default=3.0, help="seconds between cues (default 3)")
     p.add_argument("--nothing-minutes", type=float, help="record only 'nothing' for this many minutes")
+    p.add_argument("--look-minutes", type=float,
+                   help="idle test: look around like in look mode for this many minutes, "
+                        "with a new prompt every few seconds; no gestures, all 'nothing'")
     p.add_argument("--out", default=str(REPO / "data" / "raw"), help="output folder (default data/raw)")
     p.add_argument("--overwrite", action="store_true", help="replace an existing session")
     args = p.parse_args()

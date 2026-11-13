@@ -34,7 +34,12 @@ python host/record.py --port COM5 --person P01 --session s04 --gestures jump --r
 
 # "nothing" data: move around normally for 5 minutes, no cues
 python host/record.py --port COM5 --person P01 --session s03 --nothing-minutes 5
+
+# idle test: look around like in look mode (not dead still) for 3 minutes, no gestures
+python host/record.py --port COM5 --person P01 --session s20 --look-minutes 3
 ```
+
+- `--look-minutes` is an idle test for look mode. Every 4–8 s it prints a new look-around prompt ("slowly look LEFT", "follow a mob walking past", "aim at a block, tiny corrections"…), so the board keeps moving the way it does when you aim. Do only what the prompt says and no gestures. No labels are written, so the whole session counts as `nothing`. Use it for training data, or later to count false triggers per minute.
 
 - Gestures come in random order, 20 cues per round (`--round-size`). Between rounds it stops and waits for you to press Enter (or `y`), so you can take a break; type `q` to finish early. Recording keeps running during the break and that time counts as "nothing". Each cue is a big box like `GO:   M I N E     3 / 20` (3rd cue of the round) with a one-line how-to and a beep. Do the gesture once, then move normally until the next cue.
 - A mistake can't be detected: if you do the wrong gesture, note the cue number it printed so it can be removed later.
