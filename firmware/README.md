@@ -2,13 +2,14 @@
 
 Firmware for the STM32F4 Discovery (STM32F407VG), built with CMake + `arm-none-eabi-gcc` (see the toolchain table in architecture.md). See [../docs/architecture.md](../docs/architecture.md) for how the pieces connect.
 
-**Status:** [`capture/`](capture/) is a small stand-alone firmware for recording data (MPU-6050 → UART text stream). It builds but hasn't been tested on hardware yet. The main firmware below doesn't exist yet.
+**Status:** [`capture/`](capture/) is a small stand-alone firmware for recording data (MPU-6050 → UART text stream). It builds but hasn't been tested on hardware yet. [`model_test/`](model_test/) runs the trained gesture model with ExecuTorch on the board and measures it: **3.43 ms** per inference (int8, CMSIS-NN), tested on the board Nov 13. The main firmware below doesn't exist yet.
 
 ## Planned layout
 
 ```
 firmware/
   capture/                  ✅ exists: stand-alone data-capture firmware (MPU-6050 -> UART)
+  model_test/               ✅ exists: model speed test (ExecuTorch int8 on the board, results over the ST-LINK)
   swing_to_mine/            main firmware (CMake, ST HAL/CMSIS as submodules)
     Core/Src/main.c         init + 100 Hz loop
     App/
@@ -46,7 +47,7 @@ Directional only; adjust names freely, but keep the boundaries.
 - [ ] **M1 · Board talks:** project builds and flashes; LED blinks; button read
 - [ ] **M2 · Sensor:** MPU-6050 read at 100 Hz, streamed over USB serial in the agreed format (UART version written in `capture/`, untested on hardware)
 - [ ] **M3 · USB HID:** board shows up as keyboard + mouse (TinyUSB composite with serial)
-- [ ] **M4 · Dummy model:** any tiny exported model runs on the board; record flash/RAM/time
+- [x] **M4 · Dummy model:** any tiny exported model runs on the board; record flash/RAM/time (Nov 13: the real trained model, int8, 3.43 ms, 117 KB flash, 41 KB RAM; [`model_test/`](model_test/), [results](../docs/results.md))
 - [ ] **M5 · No-ML controller:** modes, air mouse, tilt walk working in Minecraft
 - [ ] **M6 · Real model:** trained model + decoder drive gestures in-game
 - [ ] **M7 · Measured:** latency and memory numbers in `docs/results.md`
