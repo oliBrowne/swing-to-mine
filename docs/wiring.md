@@ -42,7 +42,7 @@ The gyro and the UART adapter **don't connect to each other**. Each one wires to
 
 - If the adapter has a **5V / 3.3V jumper**, set it to **3.3V**. The STM32 runs at 3.3 V.
 - Serial settings: **115200 baud, 8 data bits, no parity, 1 stop bit** (8N1). That's the default in `host/record.py`.
-- On Windows the adapter shows up as a COM port in **Device Manager > Ports (COM & LPT)**. That's the port to pass as `--port`. If it doesn't show up, install the driver for its chip (CH340, CP2102 or FTDI, printed on the adapter).
+- On Windows the adapter shows up as a COM port in **Device Manager > Ports (COM & LPT)**. That's the port to pass as `--port`. If it doesn't show up, it may need a driver: see [setup-drivers.md](setup-drivers.md) (how to find the chip, which ones need a driver on Windows/Mac/Linux, and how to find the port name).
 
 ## 3. Power and flashing
 

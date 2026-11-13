@@ -99,6 +99,7 @@ Full setup and run instructions will be added as each part comes together. What 
 **Record gesture data** (written Nov 12, not yet tested on hardware)
 
 1. Wire the MPU-6050 and a USB-UART adapter: [docs/wiring.md](docs/wiring.md)
+   - Computer doesn't see the adapter or the board? Driver and COM port setup: [docs/setup-drivers.md](docs/setup-drivers.md)
 2. Build and flash the capture firmware: [firmware/capture/README.md](firmware/capture/README.md)
 3. Record:
    ```bash
