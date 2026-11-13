@@ -15,7 +15,7 @@ You hold the board **upright**, like a sword handle. There are three modes; the 
 | **Tilt back / sideways** | walk back / strafe (`S`, `A`, `D`) | — | — |
 | **Turn left / right** (slowly) | steer the camera | move the camera | move the cursor (slower) |
 | **Point up / down** (slowly) | — (forward tilt means walk) | move the camera | move the cursor (slower) |
-| **Sword**: side swipe, board upright | — | one left click | — |
+| **Sword**: side swipe | — | one left click | — |
 | **Mine**: pickaxe arc forward and down | — | hold left click (keep mining = keep holding) | — |
 | **Place**: straight jab forward, no tilt | — | right click (place block, open chest) | — |
 | **Hop** | — (Auto-Jump handles steps) | jump (`Space`) | — |

@@ -57,7 +57,7 @@ LABEL_LENGTH_MS = 1500           # how long after a cue the gesture is assumed t
 
 # Shown on screen with each cue so it's clear what motion to do.
 HOW_TO = {
-    "sword": "one SIDE SWIPE, board stays upright",
+    "sword": "one SIDE SWIPE, like swinging a sword",
     "mine": "one PICKAXE ARC: tip forward and down, then back up",
     "place": "one straight JAB forward, NO tilt",
     "swap_left": "one quick hotbar flick to the LEFT",

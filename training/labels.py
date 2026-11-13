@@ -7,7 +7,7 @@ docs/architecture.md in the same commit.
 
 CLASSES = [
     "nothing",     # any other motion: slow pointing/looking, resting, fidgeting
-    "sword",       # side swipe, board stays upright     -> one left click
+    "sword",       # side swipe, like swinging a sword   -> one left click
     "mine",        # arched pickaxe swing forward + down -> hold left click
     "place",       # straight jab forward, no tilt       -> right click
     "swap_left",   # quick hotbar flick left             -> scroll up
