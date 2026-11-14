@@ -21,7 +21,7 @@ This is the path for a Windows 10/11 laptop (e.g. Eli's HP Victus). The rest of 
    🧑 Install **STM32CubeProgrammer** (https://www.st.com/en/development-tools/stm32cubeprog.html, free ST account) and keep the driver option ticked in the installer. Plug the board's **mini-USB** (top of the board) into the laptop. In **Device Manager > Universal Serial Bus devices** it should show as "STM32 STLink" with no ⚠. If it has a ⚠, install ST's **STSW-LINK009** driver (Step 4 below) and replug.
 2. **Flash the capture firmware** with STM32CubeProgrammer: connect with ST-LINK, open `capture.hex`, click *Download*, then press the board's black reset button. Details: [firmware/capture/README.md](../firmware/capture/README.md#flash).
 3. **Plug in the USB-UART adapter** (wired to PA2/PA3/GND per [wiring.md](wiring.md)). The capture firmware sends gyro data out of those pins, **not** through the board's own USB, so the adapter is required.
-4. **Check if Windows already gave it a COM port.** In PowerShell, from the repo folder:
+4. **Check if Windows already gave it a COM port.** In PowerShell, from the repo folder, with the venv active (one-time setup: [firmware/capture/README.md](../firmware/capture/README.md#python-virtual-environment)):
    ```powershell
    pip install -r host/requirements.txt
    python -m serial.tools.list_ports -v
@@ -42,7 +42,7 @@ This is the path for a Windows 10/11 laptop (e.g. Eli's HP Victus). The rest of 
 
 The chip name is usually printed on the adapter's board or on its listing (e.g. "CH340G", "CP2102", "FT232RL"). If you can't read it, plug the adapter in and check its USB ID:
 
-**Any OS (easiest, works once Python deps are installed):**
+**Any OS (easiest, works once Python deps are installed in the venv, see [firmware/capture/README.md](../firmware/capture/README.md#python-virtual-environment)):**
 
 ```bash
 pip install -r host/requirements.txt
