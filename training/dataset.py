@@ -11,8 +11,8 @@ Reads data/raw/<person>/<session>.csv (+ .labels.csv) and returns
 How windows are picked:
 
 * People react 0.3 to 2 s after the cue, so the label start time is not where
-  the motion is. For each cue we look for the first sample with real motion
-  (the "onset") and cut windows around that instead.
+  the motion is. For each cue we find the gesture itself (the strongest burst
+  of motion, see find_gesture) and cut windows around its start (the "onset").
 * One-shot gestures (sword, place, swaps, jump): a few windows that all contain
   the whole motion, shifted a little so the model does not care exactly where
   in the window the gesture sits.
@@ -52,13 +52,15 @@ SCALE = np.array([1 / ACCEL_COUNTS_PER_G] * 3
 # "Real motion" = turning faster than this, or shaking harder than this.
 ONSET_GYRO_DPS = 120.0
 ONSET_ACCEL_G = 0.45
+BURST_GAP = 25                  # samples of quiet that separate two motions
 
 # Cues where the person did nothing or did the wrong gesture (1-based cue
 # number in the labels file), found by looking at the data on Nov 13.
 BAD_CUES = {
     ("P01", "s01"): {3},
+    ("P01", "s04"): {29},        # swap_left cue, flicked right
     ("P01", "s06"): {61},
-    ("P02", "s02"): {25, 37},
+    ("P02", "s02"): {7, 25, 37}, # 7: place cue, no real motion
     ("P02", "s09"): {25},
     ("P02", "s15"): {12},
 }
@@ -73,7 +75,10 @@ def class_list(with_jump: bool = False) -> list[str]:
 
 
 def load_session(csv_path: Path):
-    """Returns (t_ms, scaled [T, 6], motion mask [T])."""
+    """Returns (t_ms, scaled [T, 6], motion strength [T]).
+
+    Motion strength is 1.0 at the "real motion" threshold; moving = strength > 1.
+    """
     d = pd.read_csv(csv_path, comment="#")
     t = d["t_ms"].to_numpy(dtype=np.int64)
     v = d[CHANNELS].to_numpy(dtype=np.float32) * SCALE
@@ -83,8 +88,34 @@ def load_session(csv_path: Path):
     kernel = np.ones(50) / 50                       # 0.5 s average = gravity
     slow = np.stack([np.convolve(accel[:, i], kernel, "same") for i in range(3)], axis=1)
     shake_g = np.linalg.norm(accel - slow, axis=1)
-    moving = (gyro_dps > ONSET_GYRO_DPS) | (shake_g > ONSET_ACCEL_G)
-    return t, v, moving
+    strength = np.maximum(gyro_dps / ONSET_GYRO_DPS, shake_g / ONSET_ACCEL_G)
+    return t, v, strength
+
+
+def find_gesture(strength, lo, hi, longest: bool):
+    """Where the gesture is inside one cue: (first sample, last sample), or None.
+
+    The hand is often still moving when a cue appears (drifting back from the
+    previous gesture), so "first motion after the cue" picks up the wrong
+    thing. Instead, split the motion into bursts (separated by 0.25 s of quiet)
+    and take the strongest burst, or for mine the one with the most motion.
+    """
+    active = np.flatnonzero(strength[lo:hi] > 1.0)
+    if len(active) == 0:
+        return None
+    breaks = np.flatnonzero(np.diff(active) > BURST_GAP) + 1
+    bursts = np.split(active, breaks)
+    if longest:
+        best = max(bursts, key=len)
+    else:
+        peak = [strength[lo + b].max() for b in bursts]
+        k = int(np.argmax(peak))
+        # A jab is "out, then back": if a burst at least half as strong ends
+        # less than 0.6 s before the strongest one, the gesture started there.
+        while k > 0 and peak[k - 1] >= 0.5 * peak[k] and bursts[k][0] - bursts[k - 1][-1] < 60:
+            k -= 1
+        best = bursts[k]
+    return lo + best[0], lo + best[-1]
 
 
 def _window(t, v, start):
@@ -100,7 +131,7 @@ def session_windows(csv_path: Path, with_jump: bool = False):
     """Yields (window, class_index, cue_number) for one session."""
     classes = class_list(with_jump)
     person, session = csv_path.parent.name, csv_path.stem
-    t, v, moving = load_session(csv_path)
+    t, v, strength = load_session(csv_path)
 
     labels_path = csv_path.with_name(session + ".labels.csv")
     labels = pd.read_csv(labels_path) if labels_path.exists() else pd.DataFrame(
@@ -137,13 +168,12 @@ def session_windows(csv_path: Path, with_jump: bool = False):
 
         lo = np.searchsorted(t, row["start_ms"] + 200)
         hi = np.searchsorted(t, min(starts[i + 1], row["start_ms"] + 3500))
-        active = np.flatnonzero(moving[lo:hi])
-        if len(active) == 0:                        # no motion found: skip the cue
+        found = find_gesture(strength, lo, hi, longest=(label == "mine"))
+        if found is None:                           # no motion found: skip the cue
             continue
-        onset = lo + active[0]
+        onset, last = found
 
-        if label == "mine":
-            last = lo + active[-1]                  # where the chopping stops
+        if label == "mine":                         # last = where the chopping stops
             for shift in MINE_SHIFTS:
                 start = onset + shift
                 if start + WINDOW - 30 > last:      # mostly past the chopping
