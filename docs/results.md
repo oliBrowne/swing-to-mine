@@ -133,3 +133,11 @@ Replay (`evaluate_stream.py`, default decoder, seeds 0 / 1 / 2), before → afte
 Sword and swap_right now hit 99–100%. Mine is the weakest gesture (93–94%, 6–7 misses). Wrong-gesture events and false triggers didn't change.
 
 Caveat: the 8 cues were found *because* every model got them wrong, so dropping them also removes them from the test (470 → 462 scored gesture cues in the replay, 40 fewer windows). Part of the gain is that. Each cue also has a reason that shows in the raw motion. On the cleaned data, these were tried and not adopted (all within noise of 99.06%): 60 epochs 99.35%, speed-change augmentation 99.00%, distilling a 3-model ensemble 99.07%, avg + max pooling 98.95%, medium avg + max 99.40%, residual blocks 98.93%.
+
+## Mine "misses" were a scoring mistake (Nov 14, on the PC)
+
+Most missed mine cues had the model saying mine for 70 to 90 runs in a row at up to 0.95 confidence. The hold had started during the previous cue (people keep chopping past the cue) and was still on, so no new "mine started" event fell inside the cue. In the game that is correct: it is still mining. `evaluate_stream.py` now counts a mine cue as hit when mine was held for at least 0.5 s during it.
+
+Replay with that scoring, 3 seeds, 2 unseen people, 1,386 gesture cues: right gesture fired **98.8%** (sword 100, mine 98, place 97, swap_left 100, swap_right 99), fired twice 0.3 per 100, wrong gesture also fired 1.9 per 100, false triggers 0.12 per minute.
+
+What is left: a place firing during a mine cue (12 of 282, at the start or end of the chopping), a swap_right at the start of a mine (6 of 282), 9 missed place jabs of 279. Mine release time 200 to 600 ms makes no difference; 800 ms starts to swallow the next gesture.

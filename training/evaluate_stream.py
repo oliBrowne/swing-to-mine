@@ -45,6 +45,7 @@ IN_A_ROW = 3                # runs in a row (x 50 ms)
 COOLDOWN_MS = 300           # after any gesture fires
 REARM_RUNS = 3              # runs a gesture must stop winning before it can fire again
 MINE_RELEASE_MS = 400       # mine lets go after this long without winning
+MIN_HOLD_MS = 500           # scoring: a mine cue counts if mine was held this long during it
 CUE_SPAN_MS = 4500          # a cue "owns" this long, or until the next cue
 
 
@@ -73,11 +74,13 @@ def decode(times, probs, classes, threshold=THRESHOLD, in_a_row=IN_A_ROW,
         window for a while; without this it fires twice.
       * mine is a hold: it starts like the others and lets go once mine has
         not been the model's top pick for `mine_release_ms`.
-    Returns a list of (time_ms, class name); for mine, the time the hold started.
+    Returns (events, holds): events is a list of (time_ms, class name), for
+    mine the time the hold started; holds is a list of (start_ms, end_ms) during
+    which mine was held.
     """
     mine = classes.index("mine")
-    events, streak_class, streak, quiet_until = [], -1, 0, -1
-    mining, mine_last = False, -1
+    events, holds, streak_class, streak, quiet_until = [], [], -1, 0, -1
+    mining, mine_last, mine_start = False, -1, -1
     blocked, lost = -1, 0
     for now, p in zip(times, probs):
         raw = int(p.argmax())
@@ -94,20 +97,23 @@ def decode(times, probs, classes, threshold=THRESHOLD, in_a_row=IN_A_ROW,
                 mine_last = now
             elif now - mine_last > mine_release_ms:
                 mining = False
+                holds.append((mine_start, int(now)))
                 quiet_until = now + cooldown_ms
             continue
         if top != 0 and streak >= in_a_row and now >= quiet_until and top != blocked:
             events.append((int(now), classes[top]))
             if top == mine:
-                mining, mine_last = True, now
+                mining, mine_last, mine_start = True, now, int(now)
             else:
                 quiet_until = now + cooldown_ms
                 if rearm > 0:
                     blocked, lost = top, 0
-    return events
+    if mining:
+        holds.append((mine_start, int(times[-1])))
+    return events, holds
 
 
-def score_session(csv_path, events, classes):
+def score_session(csv_path, events, holds, classes):
     """Counts for one session: per-gesture hit/miss/extra and false triggers."""
     person, session = csv_path.parent.name, csv_path.stem
     t, _, _ = load_session(csv_path)
@@ -132,6 +138,11 @@ def score_session(csv_path, events, classes):
         if skip:
             continue
         fired = [events[k][1] for k in inside]
+        # A hold that started in the previous cue and is still on counts: the
+        # game would still be mining.
+        if label == "mine" and "mine" not in fired and any(
+                min(b, hi) - max(a, lo) >= MIN_HOLD_MS for a, b in holds):
+            fired.append("mine")
         out[label]["cues"] += 1
         out[label]["hit" if label in fired else "miss"] += 1
         out[label]["double"] += max(fired.count(label) - 1, 0)
@@ -163,8 +174,8 @@ def evaluate(threshold, in_a_row, width="small", epochs=30, seed=0, pool="max", 
                 continue
             t, v, _ = load_session(csv_path)
             times, probs = stream_probabilities(model, t, v)
-            events = decode(times, probs, classes, threshold, in_a_row)
-            for key, counts in score_session(csv_path, events, classes).items():
+            events, holds = decode(times, probs, classes, threshold, in_a_row)
+            for key, counts in score_session(csv_path, events, holds, classes).items():
                 total[key].update(counts)
                 total[who + "/" + key].update(counts)
     if not quiet:
