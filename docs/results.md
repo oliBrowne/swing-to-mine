@@ -116,3 +116,20 @@ Remaining errors: sword cues that also send a swap_right (5 of 288) or swap_righ
 
 Not measured: this decoder on the board with a live sensor, and false triggers while really looking around (needs the `--look-minutes` recordings).
 
+
+## Gesture start near the peak, 8 more mistaken cues (Nov 14, on the PC)
+
+**Start of the gesture.** When the hand never stops between the previous motion and the gesture, the strongest burst starts long before the swing (P01 s06 cue 38 peaked 0.9 s after its "start"). One-shot gestures now start at most 0.4 s before the burst's strongest point (`PEAK_LEAD = 40` in `dataset.py`). Leave one person out, `small` max-pool, 3 seeds, % of all test windows right: 98.18% → 98.43% (0.3 s: 98.19%, 0.2 s: 97.86%). That's within noise, but it fixed P01 s06 cues 38 and 55, which were wrong in every run before.
+
+**Eight more mistaken cues skipped** (the ones listed above as worth a look). Each was plotted over its whole span: motion strength, detected start, windows cut, next cue. All are in `BAD_CUES` with what the plot shows: P01 s03 cue 2 and s05 cue 10 (sword cues, ~2 s of repeated swings like chopping), P01 s05 cue 13 (the swing comes after the next cue), P02 s02 cue 22 and s07 cue 9 (place cues with almost no motion), P02 s02 cue 26 and s15 cue 11 (swap_right cues that look like a sword), P02 s15 cue 20 (sword cue, 2+ s of chopping). Windows: **99.06%** right (seeds 99.3 / 99.4 / 98.5; P01 99.0, P02 99.1), every gesture 98–100% recall.
+
+Replay (`evaluate_stream.py`, default decoder, seeds 0 / 1 / 2), before → after both changes:
+
+| | right gesture fired | wrong gesture also fired (per 100 cues) | false triggers / min |
+|---|---|---|---|
+| before | 97.0 / 97.2 / 95.7% | 1.9 / 2.1 / 1.7 | 0.07 / 0.14 / 0.10 |
+| after | 98.1 / 98.3 / 97.4% | 1.7 / 1.5 / 2.6 | 0.10 / 0.10 / 0.07 |
+
+Sword and swap_right now hit 99–100%. Mine is the weakest gesture (93–94%, 6–7 misses). Wrong-gesture events and false triggers didn't change.
+
+Caveat: the 8 cues were found *because* every model got them wrong, so dropping them also removes them from the test (470 → 462 scored gesture cues in the replay, 40 fewer windows). Part of the gain is that. Each cue also has a reason that shows in the raw motion. On the cleaned data, these were tried and not adopted (all within noise of 99.06%): 60 epochs 99.35%, speed-change augmentation 99.00%, distilling a 3-model ensemble 99.07%, avg + max pooling 98.95%, medium avg + max 99.40%, residual blocks 98.93%.
