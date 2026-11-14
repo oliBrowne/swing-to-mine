@@ -53,16 +53,22 @@ SCALE = np.array([1 / ACCEL_COUNTS_PER_G] * 3
 ONSET_GYRO_DPS = 120.0
 ONSET_ACCEL_G = 0.45
 BURST_GAP = 25                  # samples of quiet that separate two motions
+PEAK_LEAD = 40                  # one-shot gestures start at most 0.4 s before their peak
 
 # Cues where the person did nothing or did the wrong gesture (1-based cue
 # number in the labels file), found by looking at the data on Nov 13.
+# Nov 14: cues every leave-one-person-out model (3 seeds) got wrong, checked by
+# plotting the motion around each cue (comments say what the plot shows).
 BAD_CUES = {
     ("P01", "s01"): {3},
-    ("P01", "s04"): {29},        # swap_left cue, flicked right
+    ("P01", "s03"): {2},             # sword cue: 2 s of repeated swings, like chopping
+    ("P01", "s04"): {29},            # swap_left cue, flicked right
+    ("P01", "s05"): {10, 13},        # 10: sword cue, repeated swings; 13: swing comes after the next cue
     ("P01", "s06"): {61},
-    ("P02", "s02"): {7, 25, 37}, # 7: place cue, no real motion
+    ("P02", "s02"): {7, 22, 25, 26, 37},  # 7, 22: place cue, no real motion; 26: swap_right cue, two long swings like a sword
+    ("P02", "s07"): {9},             # place cue, no real motion
     ("P02", "s09"): {25},
-    ("P02", "s15"): {12},
+    ("P02", "s15"): {11, 12, 20},    # 11: swap_right cue, looks like a sword; 20: sword cue, 2+ s of chopping
 }
 
 # Where each window starts, in samples relative to the motion onset.
@@ -115,6 +121,12 @@ def find_gesture(strength, lo, hi, longest: bool):
         while k > 0 and peak[k - 1] >= 0.5 * peak[k] and bursts[k][0] - bursts[k - 1][-1] < 60:
             k -= 1
         best = bursts[k]
+        # If the hand never stopped between the previous motion and this gesture,
+        # the burst starts long before the swing itself: start at most
+        # PEAK_LEAD samples before the burst's strongest point.
+        top = best[int(np.argmax(strength[lo + best]))]
+        if top - best[0] > PEAK_LEAD:
+            return lo + top - PEAK_LEAD, lo + best[-1]
     return lo + best[0], lo + best[-1]
 
 

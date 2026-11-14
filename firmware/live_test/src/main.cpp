@@ -40,10 +40,12 @@ static const float kGyroScale = 1.0f / (16.4f * 250.0f);  /* counts -> deg/s, th
 /* ---- classes: training/labels.py order ---- */
 enum { NOTHING, SWORD, MINE, PLACE, SWAP_LEFT, SWAP_RIGHT, N_CLASSES };
 
-/* ---- decoder settings ---- */
-static const float kMinProb = 0.80f;       /* winner's softmax probability must be at least this */
-static const int kAgreeRuns = 2;           /* ...for this many runs in a row (2 x 50 ms) */
-static const uint32_t kCooldownMs = 500;   /* after a one-shot gesture, ignore new ones this long */
+/* ---- decoder settings: keep in step with training/evaluate_stream.py ---- */
+static const float kMinProb = 0.60f;       /* winner's softmax probability must be at least this */
+static const int kAgreeRuns = 3;           /* ...for this many runs in a row (3 x 50 ms) */
+static const uint32_t kCooldownMs = 300;   /* after a gesture fires, ignore new ones this long */
+static const int kRearmRuns = 3;           /* a fired gesture must stop winning this many runs before it can fire again */
+static const uint32_t kMineReleaseMs = 400;/* mine lets go after this long without being the top pick */
 static const uint32_t kFlashMs = 300;      /* how long a one-shot LED stays on */
 
 /* LED bits: 0 green, 1 orange, 2 red, 3 blue */
@@ -103,30 +105,48 @@ static void fail(uint32_t stage, Error e) {
 /* Decoder state */
 static int streak_class = -1, streak = 0;
 static bool mining = false;
-static uint32_t cooldown_until = 0, flash_until = 0;
+static uint32_t cooldown_until = 0, flash_until = 0, mine_last = 0;
+static int blocked = -1, lost = 0;
 static uint8_t flash_led = 0;
 
-static void decode(int top, float prob, uint32_t now) {
-    if (prob < kMinProb) top = NOTHING;            /* not sure enough: treat as nothing */
+static void count_event(int cls, uint32_t now) {
+    g_event_count[cls] = g_event_count[cls] + 1;
+    g_events = g_events + 1;
+    g_last_event = cls;
+    g_last_event_ms = now;
+}
+
+/* Same rules as decode() in training/evaluate_stream.py:
+ *  - a gesture fires after kAgreeRuns confident wins in a row, outside the cooldown
+ *  - after firing it is blocked until the model has named something else
+ *    kRearmRuns runs in a row (one swing stays in the 1 s window for a while)
+ *  - mine is a hold: released once mine has not been the top pick for kMineReleaseMs */
+static void decode(int raw, float prob, uint32_t now) {
+    int top = (prob >= kMinProb) ? raw : NOTHING;
     streak = (top == streak_class) ? streak + 1 : 1;
     streak_class = top;
 
-    if (mining && !(top == MINE && streak >= 1)) mining = false;   /* mine stops as soon as it stops winning */
-    if (streak == kAgreeRuns && top != NOTHING) {
-        if (top == MINE) {
-            if (!mining) {
-                mining = true;
-                g_event_count[MINE] = g_event_count[MINE] + 1;
-                g_events = g_events + 1;
-                g_last_event = MINE;
-                g_last_event_ms = now;
-            }
-        } else if ((int32_t)(now - cooldown_until) >= 0) {
-            g_event_count[top] = g_event_count[top] + 1;
-            g_events = g_events + 1;
-            g_last_event = top;
-            g_last_event_ms = now;
+    if (blocked >= 0) {
+        lost = (raw != blocked) ? lost + 1 : 0;
+        if (lost >= kRearmRuns) blocked = -1;
+    }
+    if (mining) {
+        if (raw == MINE) {
+            mine_last = now;
+        } else if (now - mine_last > kMineReleaseMs) {
+            mining = false;
             cooldown_until = now + kCooldownMs;
+        }
+    } else if (top != NOTHING && streak >= kAgreeRuns &&
+               (int32_t)(now - cooldown_until) >= 0 && top != blocked) {
+        count_event(top, now);
+        if (top == MINE) {
+            mining = true;
+            mine_last = now;
+        } else {
+            cooldown_until = now + kCooldownMs;
+            blocked = top;
+            lost = 0;
             flash_led = kLedFor[top];
             flash_until = now + kFlashMs;
         }

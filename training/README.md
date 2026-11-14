@@ -45,7 +45,7 @@ flowchart LR
 | `baseline_rules.py` | Threshold / peak rules for each gesture: the "why ML?" comparison |
 | `compress.py` | Pruning (Lab 3 style) and int8 quantization |
 | `export.py` | ✅ ExecuTorch export: int8 for CMSIS-NN (default) or `--float`, plus test windows for `firmware/model_test`. Still to do: write into the main firmware's `Model/` with the scaling constants |
-| `evaluate_stream.py` | Replays whole sessions like the board would: event precision/recall, false triggers per minute, latency in samples |
+| `evaluate_stream.py` | **Exists.** Replays whole sessions like the board would (model every 50 ms + the firmware decoder): hits, misses, double fires, wrong gestures, false triggers per minute |
 
 ## Experiments to report (in `docs/results.md`)
 

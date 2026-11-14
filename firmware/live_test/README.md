@@ -16,7 +16,7 @@ Live sensor into the model, result on the LEDs. It reads the MPU-6050 at 100 Hz,
 | all off | nothing |
 | all four blinking fast | ExecuTorch error (`watch.py` shows the stage and code) |
 
-**Decoder:** a gesture counts when the model's softmax probability for it is ≥ 0.80 on 2 runs in a row (100 ms). After a one-shot gesture (sword, place, swaps) new ones are ignored for 500 ms. Mine turns on the same way and turns off as soon as another class wins. The settings are at the top of `src/main.cpp`.
+**Decoder:** a gesture fires when the model's softmax probability for it is ≥ 0.60 on 3 runs in a row (150 ms). After it fires, new gestures are ignored for 300 ms, and the same gesture cannot fire again until the model has named something else 3 runs in a row (otherwise one swing fires twice, because it stays inside the 1 s window). Mine turns on the same way and lets go once mine has not been the top pick for 400 ms. The settings are at the top of `src/main.cpp` and must match `training/evaluate_stream.py`, which replays recordings through the same rules (Nov 14: the C++ and Python decoders gave identical events on 11 replayed sessions; this version has not been built or flashed yet).
 
 ## What it needs
 
@@ -62,7 +62,7 @@ It prints the samples per second (should be ~100), inferences per second (~20), 
 
 **Then try the gestures** (Oliver): do each one ~10 times and note how often the right LED lights, then run `watch.py` to read the per-gesture counts. Also check the worst-case timing line: `sample->decision` should stay well under 10 ms (one sample period). The model alone is ~3.4 ms.
 
-If nothing lights for real gestures, `watch.py` shows `model says:` with the last class and probability. If the right class wins but below 0.80, lower `kMinProb` in `src/main.cpp`.
+If nothing lights for real gestures, `watch.py` shows `model says:` with the last class and probability. If the right class wins but below 0.60, lower `kMinProb` in `src/main.cpp`.
 
 ## Files
 

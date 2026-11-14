@@ -97,3 +97,47 @@ Tried on the same data and within noise of the old baseline (so not adopted): mi
 
 Two more cues are now skipped as recording mistakes (P01 s04 cue 29: swap_left cue flicked right; P02 s02 cue 7: no motion). Still wrong in every run and worth a look by the team: P02 s02 cue 26 and s15 cue 11 (swap_right cues that look like a sword/chop), P01 s06 cue 38 and s05 cue 13 (swap_right), P01 s03 cue 2, s05 cue 10 and P02 s15 cue 20 (sword read as mine), and three very weak P02 place jabs (s02 cue 22, s07 cue 9).
 
+## Replaying whole recordings like the board would (Nov 14, on the PC)
+
+`python training/evaluate_stream.py`: train on everyone but one person, slide a 1 s window over that person's whole sessions every 50 ms, run the decoder, compare what fired with what was cued. 3 seeds, 2 test people, 1,410 gesture cues, 125 minutes of idle cues and gaps between cues (idle here is mostly holding still, not looking around).
+
+| Decoder | right gesture fired | fired twice | wrong gesture also fired | false triggers per minute |
+|---|---|---|---|---|
+| old: confidence ≥ 0.80 twice in a row, 500 ms cooldown, mine drops at once | 90.9% | 6.6 per 100 | 1.8 per 100 | 0.03 |
+| **new: ≥ 0.60 three times in a row, 300 ms cooldown, re-arm rule, mine released after 400 ms** | **96.7%** | 0.2 per 100 | 1.9 per 100 | 0.10 |
+
+Per gesture with the new decoder: sword 98, mine 94, place 96, swap_left 100, swap_right 95. The old decoder missed mostly place (80%) and swap_right (89%), whose confidence often stays under 0.80.
+
+The re-arm rule: after a gesture fires it cannot fire again until the model has named something else 3 runs in a row. One swing stays inside the 1 s window for up to a second, so without the rule it can fire again once the cooldown ends.
+
+Other settings tried (same replay): threshold 0.5 catches 97.2% but doubles the wrong gestures (4.5 per 100); 0.7 drops place to 89%; cooldown 200 to 500 ms and re-arm 2 to 5 runs make no difference. Training changes tried against this replay and not adopted: wider time shifts of the training windows (+0.3 points, within noise), no label smoothing (same curve, shifted).
+
+Remaining errors: sword cues that also send a swap_right (5 of 288) or swap_right cues that also send a sword (6 of 282); mine cues with a swap_right at the start (6 of 282); 16 missed mines, mostly the early single-arc ones.
+
+Not measured: this decoder on the board with a live sensor, and false triggers while really looking around (needs the `--look-minutes` recordings).
+
+
+## Gesture start near the peak, 8 more mistaken cues (Nov 14, on the PC)
+
+**Start of the gesture.** When the hand never stops between the previous motion and the gesture, the strongest burst starts long before the swing (P01 s06 cue 38 peaked 0.9 s after its "start"). One-shot gestures now start at most 0.4 s before the burst's strongest point (`PEAK_LEAD = 40` in `dataset.py`). Leave one person out, `small` max-pool, 3 seeds, % of all test windows right: 98.18% → 98.43% (0.3 s: 98.19%, 0.2 s: 97.86%). That's within noise, but it fixed P01 s06 cues 38 and 55, which were wrong in every run before.
+
+**Eight more mistaken cues skipped** (the ones listed above as worth a look). Each was plotted over its whole span: motion strength, detected start, windows cut, next cue. All are in `BAD_CUES` with what the plot shows: P01 s03 cue 2 and s05 cue 10 (sword cues, ~2 s of repeated swings like chopping), P01 s05 cue 13 (the swing comes after the next cue), P02 s02 cue 22 and s07 cue 9 (place cues with almost no motion), P02 s02 cue 26 and s15 cue 11 (swap_right cues that look like a sword), P02 s15 cue 20 (sword cue, 2+ s of chopping). Windows: **99.06%** right (seeds 99.3 / 99.4 / 98.5; P01 99.0, P02 99.1), every gesture 98–100% recall.
+
+Replay (`evaluate_stream.py`, default decoder, seeds 0 / 1 / 2), before → after both changes:
+
+| | right gesture fired | wrong gesture also fired (per 100 cues) | false triggers / min |
+|---|---|---|---|
+| before | 97.0 / 97.2 / 95.7% | 1.9 / 2.1 / 1.7 | 0.07 / 0.14 / 0.10 |
+| after | 98.1 / 98.3 / 97.4% | 1.7 / 1.5 / 2.6 | 0.10 / 0.10 / 0.07 |
+
+Sword and swap_right now hit 99–100%. Mine is the weakest gesture (93–94%, 6–7 misses). Wrong-gesture events and false triggers didn't change.
+
+Caveat: the 8 cues were found *because* every model got them wrong, so dropping them also removes them from the test (470 → 462 scored gesture cues in the replay, 40 fewer windows). Part of the gain is that. Each cue also has a reason that shows in the raw motion. On the cleaned data, these were tried and not adopted (all within noise of 99.06%): 60 epochs 99.35%, speed-change augmentation 99.00%, distilling a 3-model ensemble 99.07%, avg + max pooling 98.95%, medium avg + max 99.40%, residual blocks 98.93%.
+
+## Mine "misses" were a scoring mistake (Nov 14, on the PC)
+
+Most missed mine cues had the model saying mine for 70 to 90 runs in a row at up to 0.95 confidence. The hold had started during the previous cue (people keep chopping past the cue) and was still on, so no new "mine started" event fell inside the cue. In the game that is correct: it is still mining. `evaluate_stream.py` now counts a mine cue as hit when mine was held for at least 0.5 s during it.
+
+Replay with that scoring, 3 seeds, 2 unseen people, 1,386 gesture cues: right gesture fired **98.8%** (sword 100, mine 98, place 97, swap_left 100, swap_right 99), fired twice 0.3 per 100, wrong gesture also fired 1.9 per 100, false triggers 0.12 per minute.
+
+What is left: a place firing during a mine cue (12 of 282, at the start or end of the chopping), a swap_right at the start of a mine (6 of 282), 9 missed place jabs of 279. Mine release time 200 to 600 ms makes no difference; 800 ms starts to swallow the next gesture.
