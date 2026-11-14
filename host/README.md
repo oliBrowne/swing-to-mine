@@ -39,6 +39,8 @@ python host/record.py --port COM5 --person P01 --session s03 --nothing-minutes 5
 python host/record.py --port COM5 --person P01 --session s20 --look-minutes 3
 ```
 
+- **Mine** shows a countdown (`keep CHOPPING ... 3, 2, 1, STOP`): keep chopping until STOP, don't do one swing and wait.
+- **Place** prints a jab strength meter after each cue. Under about 0.5 g it says `TOO GENTLE`: jab faster, like knocking on a door. Any gesture cue with no motion at all gets `NO MOTION SEEN` (training skips it).
 - `--look-minutes` is an idle test for look mode. Every 4–8 s it prints a new look-around prompt ("slowly look LEFT", "follow a mob walking past", "aim at a block, tiny corrections"…), so the board keeps moving the way it does when you aim. Do only what the prompt says and no gestures. No labels are written, so the whole session counts as `nothing`. Use it for training data, or later to count false triggers per minute.
 
 - Gestures come in random order, 20 cues per round (`--round-size`). Between rounds it stops and waits for you to press Enter (or `y`), so you can take a break; type `q` to finish early. Recording keeps running during the break and that time counts as "nothing". Each cue is a big box like `GO:   M I N E     3 / 20` (3rd cue of the round) with a one-line how-to and a beep. Do the gesture once, then move normally until the next cue.

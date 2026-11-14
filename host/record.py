@@ -61,12 +61,20 @@ LABEL_LENGTH_MS = 1500           # how long after a cue the gesture is assumed t
 # Mine is continuous chopping (it holds left click while you keep chopping), so
 # its label is longer and the next cue waits a bit more.
 LABEL_LENGTH_MS_FOR = {"mine": 2500}
+# Gestures that last the whole label get a countdown on screen, so people keep
+# going until STOP: (number of ticks, what to keep doing).
+COUNTDOWN_FOR = {"mine": (3, "keep CHOPPING")}
+
+# Feedback after each cue (see feedback()).
+FIRM_JAB_G = 0.5                 # a place jab should jolt the board at least this much
+NO_MOTION_JOLT_G = 0.25
+NO_MOTION_TURN_DPS = 100.0
 
 # Shown on screen with each cue so it's clear what motion to do.
 HOW_TO = {
     "sword": "one SIDE SWIPE, like swinging a sword",
-    "mine": "keep CHOPPING (pickaxe swings) for ~2 s",
-    "place": "one straight JAB forward, NO tilt",
+    "mine": "keep CHOPPING (pickaxe swings) until STOP",
+    "place": "one quick, firm JAB forward (like knocking), NO tilt",
     "swap_left": "one quick hotbar flick to the LEFT",
     "swap_right": "one quick hotbar flick to the RIGHT",
     "jump": "one quick UPWARD flick, board held upright",
@@ -108,6 +116,25 @@ def banner(title, line2="", fill="#"):
             print(fill + text.center(width - 2) + fill)
     print(fill + " " * (width - 2) + fill)
     print(fill * width)
+
+
+def feedback(gesture, jolt_g, turn_dps):
+    """One line after a cue saying how strong the motion was, or "" for idle.
+
+    Numbers come from the first sessions (Nov 13): a typical place jab jolts the
+    board by about 0.7 g; under 0.5 g the model often cannot see it.
+    """
+    if gesture == "nothing":
+        return ""
+    if jolt_g < NO_MOTION_JOLT_G and turn_dps < NO_MOTION_TURN_DPS:
+        return "?? NO MOTION SEEN for that one (it will be skipped in training)"
+    if gesture == "place":
+        blocks = min(int(jolt_g / 0.15), 8)
+        meter = "#" * blocks + "." * (8 - blocks)
+        if jolt_g < FIRM_JAB_G:
+            return f"jab strength [{meter}]  TOO GENTLE: jab faster, like knocking on a door"
+        return f"jab strength [{meter}]  good"
+    return ""
 
 
 def spaced(name):
@@ -261,7 +288,13 @@ def record(args):
             data_file.write(COLUMNS + "\n")
             wrote_header[0] = True
         data_file.write(f"{t_ms},{','.join(str(v) for v in values)}\n")
+        # Strongest motion since the last cue, for the feedback line after it.
+        ax, ay, az, gx, gy, gz = values
+        jolt = abs((ax * ax + ay * ay + az * az) ** 0.5 / ACCEL_COUNTS_PER_G - 1.0)
+        turn = (gx * gx + gy * gy + gz * gz) ** 0.5 / GYRO_COUNTS_PER_DPS
+        peak[0], peak[1] = max(peak[0], jolt), max(peak[1], turn)
 
+    peak = [0.0, 0.0]   # [jolt in g, turn rate in deg/s]
     board = BoardReader(args.port, args.baud, on_sample)
     board.start()
     print(f"Listening on {args.port}...")
@@ -339,14 +372,28 @@ def record(args):
                         break
                     done += 1
                     start = board.last_t_ms
+                    peak[0] = peak[1] = 0.0
                     banner(f"GO:   {spaced(SHOWN_AS.get(gesture, gesture))}     {i} / {len(cues)}", HOW_TO.get(gesture, ""))
                     print(f"  (cue {done} of {total})\a")
                     length = LABEL_LENGTH_MS_FOR.get(gesture, LABEL_LENGTH_MS)
                     labels_file.write(f"{start},{start + length},{gesture}\n")
                     labels_file.flush()
                     # Random gap so the gaps between gestures aren't all identical.
-                    time.sleep(max(1.6, args.gap + random.uniform(-0.5, 1.0))
-                               + (length - LABEL_LENGTH_MS) / 1000)
+                    wait = (max(1.6, args.gap + random.uniform(-0.5, 1.0))
+                            + (length - LABEL_LENGTH_MS) / 1000)
+                    if gesture in COUNTDOWN_FOR:
+                        # Count down through the label so people keep going
+                        # until STOP instead of doing one swing and waiting.
+                        ticks, keep_doing = COUNTDOWN_FOR[gesture]
+                        for n in range(ticks, 0, -1):
+                            print(f"      {keep_doing} ...  {n}")
+                            time.sleep(length / 1000 / ticks)
+                        print("      STOP\a")
+                        wait -= length / 1000
+                    time.sleep(max(wait, 0.0))
+                    note = feedback(gesture, peak[0], peak[1])
+                    if note:
+                        print(f"      {note}")
                 if board.stalled():
                     # The board stopped sending (cable bumped, reset button, crash).
                     # Cues after this point would have no data, so stop here.
