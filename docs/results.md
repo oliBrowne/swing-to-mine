@@ -97,3 +97,22 @@ Tried on the same data and within noise of the old baseline (so not adopted): mi
 
 Two more cues are now skipped as recording mistakes (P01 s04 cue 29: swap_left cue flicked right; P02 s02 cue 7: no motion). Still wrong in every run and worth a look by the team: P02 s02 cue 26 and s15 cue 11 (swap_right cues that look like a sword/chop), P01 s06 cue 38 and s05 cue 13 (swap_right), P01 s03 cue 2, s05 cue 10 and P02 s15 cue 20 (sword read as mine), and three very weak P02 place jabs (s02 cue 22, s07 cue 9).
 
+## Replaying whole recordings like the board would (Nov 14, on the PC)
+
+`python training/evaluate_stream.py`: train on everyone but one person, slide a 1 s window over that person's whole sessions every 50 ms, run the decoder, compare what fired with what was cued. 3 seeds, 2 test people, 1,410 gesture cues, 125 minutes of idle cues and gaps between cues (idle here is mostly holding still, not looking around).
+
+| Decoder | right gesture fired | fired twice | wrong gesture also fired | false triggers per minute |
+|---|---|---|---|---|
+| old: confidence ≥ 0.80 twice in a row, 500 ms cooldown, mine drops at once | 90.9% | 6.6 per 100 | 1.8 per 100 | 0.03 |
+| **new: ≥ 0.60 three times in a row, 300 ms cooldown, re-arm rule, mine released after 400 ms** | **96.7%** | 0.2 per 100 | 1.9 per 100 | 0.10 |
+
+Per gesture with the new decoder: sword 98, mine 94, place 96, swap_left 100, swap_right 95. The old decoder missed mostly place (80%) and swap_right (89%), whose confidence often stays under 0.80.
+
+The re-arm rule: after a gesture fires it cannot fire again until the model has named something else 3 runs in a row. One swing stays inside the 1 s window for up to a second, so without the rule it can fire again once the cooldown ends.
+
+Other settings tried (same replay): threshold 0.5 catches 97.2% but doubles the wrong gestures (4.5 per 100); 0.7 drops place to 89%; cooldown 200 to 500 ms and re-arm 2 to 5 runs make no difference. Training changes tried against this replay and not adopted: wider time shifts of the training windows (+0.3 points, within noise), no label smoothing (same curve, shifted).
+
+Remaining errors: sword cues that also send a swap_right (5 of 288) or swap_right cues that also send a sword (6 of 282); mine cues with a swap_right at the start (6 of 282); 16 missed mines, mostly the early single-arc ones.
+
+Not measured: this decoder on the board with a live sensor, and false triggers while really looking around (needs the `--look-minutes` recordings).
+
