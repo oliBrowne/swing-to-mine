@@ -78,3 +78,22 @@ Per gesture, int8 is within 1 point of float (P01: nothing 97 vs 96, place 90 vs
 - False triggers per minute on a live stream; latency from motion to click.
 - Power.
 - Accuracy of the int8 model *on the board* over a whole dataset (only 6 windows were run on the board).
+
+## Finding the gesture inside each cue (Nov 14, on the PC)
+
+No new data, no model change: only where `training/dataset.py` cuts the training and test windows. The old rule took the first motion after a cue. In about 15 cues the hand was still drifting back from the previous gesture when the cue appeared, so the windows were cut on that drift instead of the gesture. The new rule (`find_gesture`) takes the strongest burst of motion in the cue (for mine, the longest).
+
+Leave one person out, `small` max-pool model, 3 seeds, average of per-gesture accuracy:
+
+| | per 1 s window | per gesture (all windows of a cue voted together) | sword | swap_left | swap_right | place |
+|---|---|---|---|---|---|---|
+| first motion after the cue (old) | 95.0 ± 0.5 | 95.7 ± 0.4 | 91 | 95 | 92 | 96 |
+| strongest burst (new) | 97.3 ± 0.3 | 97.7 ± 0.2 | 96 | 99 | 95 | 95 |
+| strongest burst, 2 more mistaken cues skipped | 97.7 ± 0.2 | 98.1 ± 0.2 | 97 | 100 | 96 | 96 |
+
+Caveat: the test windows are cut by the same rule, so part of the gain is the test no longer scoring hand drift as a gesture. It says the model was better than the old number showed and that training now sees cleaner examples. It does not say how the board behaves on a live stream; that needs the false-triggers-per-minute replay.
+
+Tried on the same data and within noise of the old baseline (so not adopted): mirroring left/right flicks, speed-change augmentation, mixup, 3-model ensemble, medium width, dropping the two oldest sessions.
+
+Two more cues are now skipped as recording mistakes (P01 s04 cue 29: swap_left cue flicked right; P02 s02 cue 7: no motion). Still wrong in every run and worth a look by the team: P02 s02 cue 26 and s15 cue 11 (swap_right cues that look like a sword/chop), P01 s06 cue 38 and s05 cue 13 (swap_right), P01 s03 cue 2, s05 cue 10 and P02 s15 cue 20 (sword read as mine), and three very weak P02 place jabs (s02 cue 22, s07 cue 9).
+
