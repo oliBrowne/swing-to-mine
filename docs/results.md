@@ -2,20 +2,6 @@
 
 Measured numbers only, each with how it was measured. Add new results at the top of their section.
 
-## A third person: P10 (Nov 14, evening, on the PC)
-
-P10 recorded 3 sessions (s30, s31, s32), 70 cues each, same board and orientation. The board restarted ~92 s into s32 (clock back to 0, probably a loose wire or power dip on a hard swing): times after it are shifted to keep counting up with a 2 s gap, and the cut-off swap_left cue is in `BAD_CUES`.
-
-Leave one person out, `small` model, max pooling, seed 0, per 1 s window:
-
-| never saw | before P10 | with P10 |
-|---|---|---|
-| P01 | 99.0% | 99.4% |
-| P02 | 99.5% | 99.7% |
-| P10 | - | **96.1%** (nothing 100, sword 74, mine 100, place 93, swaps 100) |
-
-Replay like the board (`evaluate_stream.py`, seed 0): P01 + P02 99.1% of cues fired the right gesture; adding P10 as a third unseen person brings it to **96.4%** (false triggers 0.11 per minute). P10 alone: about 88% (sword ~20/30, place ~22/30, mine, swap_left and swap_right all hit). His sword swipes are often read as nothing and some jabs as mine: a gentler style than P01/P02. More people (P11 next) will show whether that is one person's style or a general gap.
-
 ## Max pooling instead of average (Nov 13, afternoon)
 
 `training/model.py` now pools the last 13 time steps with **max** instead of the average (`--pool`, default `max`). Retrained with `train.py` (seed 0), exported with `export.py`, run on the board with `firmware/model_test`, measured the same way as the table below:
@@ -158,26 +144,28 @@ What is left: a place firing during a mine cue (12 of 282, at the start or end o
 
 ## Third person: P10 (Nov 14, evening, on the PC)
 
-New data: P10, sessions s30, s31, s32 (70 cues each, 10 per gesture incl. jump and idle), recorded with `host/record.py` on COM7. 1,258 new windows, 6,618 in total.
+New data: P10, sessions s30, s31, s32 (70 cues each, 10 per gesture incl. jump and idle), recorded with `host/record.py` on COM7. 6,614 windows in total.
 
-**Board restart in s32.** About 92 s into s32 the board's clock jumped from 2,150,375 ms back to 239 ms (the samples just before show a very hard swing, so probably a brown-out or loose wire). The cues in the labels file follow the board clock too. `dataset.py` now stitches such pieces back together on one clock with a 10 s gap (`_reset_offsets`, `load_labels`), so no window spans the restart; `evaluate_stream.py` uses the same loader. The raw file is unchanged.
+**Board restart in s32.** About 92 s into s32 the board's clock jumped from 2,150,375 ms back to 239 ms (the samples just before show a very hard swing, so probably a brown-out or loose wire). The cues in the labels file follow the board clock too. The committed s32 files are repaired (times after the restart shifted to keep counting up, with a 2 s gap), and the swap_left cue cut in half by the restart (cue 24) is in `BAD_CUES`. As a safety net for future recordings, `dataset.py` also stitches any restart it finds back onto one clock with a 10 s gap (`_reset_offsets`, `load_labels`); `evaluate_stream.py` uses the same loader.
 
 Leave one person out (`train.py`, `small` max-pool, seed 0), % of 1 s windows right on the unseen person:
 
 | Never saw | windows right | weakest gestures |
 |---|---|---|
-| P01 | 99.3% | nothing 99% |
-| P02 | 99.8% | nothing 99% |
-| **P10 (new)** | **95.2%** | sword 71% (27 of 140 windows read as nothing, 8 as place, 6 as mine), place 89% (16 of 150 read as mine) |
+| P01 | 99.4% | nothing 99% |
+| P02 | 99.7% | nothing 100% |
+| **P10 (new)** | **96.1%** | sword 74% (24 of 140 windows read as nothing, 12 as place), place 93% (11 of 150 read as mine) |
 
 Replay (`evaluate_stream.py`, default decoder, seeds 0 / 1 / 2), now with 3 unseen people, 612 gesture cues and 46.7 idle minutes per seed:
 
 | | right gesture fired | wrong gesture also fired (per 100 cues) | false triggers / min |
 |---|---|---|---|
 | P01 + P02 (before, mine scoring fix) | 98.8% (3 seeds pooled) | 1.9 | 0.12 |
-| P01 + P02 + P10 | 95.9 / 96.2 / 94.1% | 2.3 / 3.8 / 0.7 | 0.09 / 0.00 / 0.13 |
+| P01 + P02 + P10 | 96.4 / 96.4 / 94.8% | 2.3 / 7.9 / 1.1 | 0.11 / 0.06 / 0.06 |
 
-Per gesture (seeds 0 / 1 / 2): sword 90 / 94 / 93, mine 98 / 98 / 98, place 92 / 93 / 82, swap_left 99 / 98 / 99, swap_right 100 / 98 / 98.
+Per gesture (seeds 0 / 1 / 2): sword 92 / 94 / 93, mine 98 / 98 / 98, place 92 / 93 / 85, swap_left 100 / 100 / 100, swap_right 100 / 98 / 98. Seed 1's 7.9 wrong-per-100 is almost all one pattern: a swap_left firing during swap_right cues (39 times), i.e. the flick back to center read as the opposite flick. Seeds 0 and 2 don't do it, so it's a model that happens to land there, worth watching.
+
+P10 alone (seed 0, replay): sword 20 of 30 cues, place 22 of 30, mine and both swaps all hit, about 88% overall.
 
 The drop is the new person, not the old ones: P01 and P02 are still 99%+ per window. P10's swords are gentler than P01/P02's, so a model that only saw two people calls many of them "nothing", and some of P10's place jabs look like a chop. That is the "more people's data" problem the architecture sweep pointed at; P10's own data is now in the everyone-model (`training/out/gesture_small.pt`, not committed), so the board model should do better on P10 than this test says. More people (P11 next) is the fix to try before touching the model.
 
