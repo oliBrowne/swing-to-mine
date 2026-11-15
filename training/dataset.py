@@ -80,6 +80,38 @@ def class_list(with_jump: bool = False) -> list[str]:
     return CLASSES + (OPTIONAL_GESTURES if with_jump else [])
 
 
+RESET_GAP_MS = 10_000      # gap put in where the board restarted mid-session
+
+
+def _reset_offsets(t):
+    """If the board restarted mid-session its clock starts again near 0 (P10/s32).
+
+    Returns (offset per piece, piece number per sample); adding them makes time
+    keep going up, with a RESET_GAP_MS gap so no window spans the restart.
+    """
+    piece = np.r_[0, np.cumsum(np.diff(t) < 0)]
+    offsets = [0]
+    for k in range(1, piece[-1] + 1 if len(t) else 1):
+        last = t[piece == k - 1][-1] + offsets[-1]
+        offsets.append(int(last + RESET_GAP_MS - t[piece == k][0]))
+    return np.array(offsets, dtype=np.int64), piece
+
+
+def load_labels(csv_path: Path) -> pd.DataFrame:
+    """The session's cues, on the same (restart-corrected) clock as load_session."""
+    labels_path = csv_path.with_name(csv_path.stem + ".labels.csv")
+    if not labels_path.exists():
+        return pd.DataFrame(columns=["start_ms", "end_ms", "label"])
+    labels = pd.read_csv(labels_path)
+    offsets, _ = _reset_offsets(pd.read_csv(csv_path, comment="#")["t_ms"].to_numpy(dtype=np.int64))
+    if len(offsets) > 1 and len(labels):
+        # Cues follow the board clock too: a drop in start_ms = the same restart.
+        piece = np.minimum(np.r_[0, np.cumsum(np.diff(labels["start_ms"]) < 0)], len(offsets) - 1)
+        labels["start_ms"] += offsets[piece]
+        labels["end_ms"] += offsets[piece]
+    return labels
+
+
 def load_session(csv_path: Path):
     """Returns (t_ms, scaled [T, 6], motion strength [T]).
 
@@ -87,6 +119,8 @@ def load_session(csv_path: Path):
     """
     d = pd.read_csv(csv_path, comment="#")
     t = d["t_ms"].to_numpy(dtype=np.int64)
+    offsets, piece = _reset_offsets(t)
+    t = t + offsets[piece]
     v = d[CHANNELS].to_numpy(dtype=np.float32) * SCALE
 
     gyro_dps = np.linalg.norm(v[:, 3:], axis=1) * GYRO_UNIT_DPS
@@ -144,10 +178,7 @@ def session_windows(csv_path: Path, with_jump: bool = False):
     classes = class_list(with_jump)
     person, session = csv_path.parent.name, csv_path.stem
     t, v, strength = load_session(csv_path)
-
-    labels_path = csv_path.with_name(session + ".labels.csv")
-    labels = pd.read_csv(labels_path) if labels_path.exists() else pd.DataFrame(
-        columns=["start_ms", "end_ms", "label"])
+    labels = load_labels(csv_path)
 
     # No cues at all = a look-around recording: everything is "nothing".
     if len(labels) == 0:

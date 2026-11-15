@@ -141,3 +141,30 @@ Most missed mine cues had the model saying mine for 70 to 90 runs in a row at up
 Replay with that scoring, 3 seeds, 2 unseen people, 1,386 gesture cues: right gesture fired **98.8%** (sword 100, mine 98, place 97, swap_left 100, swap_right 99), fired twice 0.3 per 100, wrong gesture also fired 1.9 per 100, false triggers 0.12 per minute.
 
 What is left: a place firing during a mine cue (12 of 282, at the start or end of the chopping), a swap_right at the start of a mine (6 of 282), 9 missed place jabs of 279. Mine release time 200 to 600 ms makes no difference; 800 ms starts to swallow the next gesture.
+
+## Third person: P10 (Nov 14, evening, on the PC)
+
+New data: P10, sessions s30, s31, s32 (70 cues each, 10 per gesture incl. jump and idle), recorded with `host/record.py` on COM7. 1,258 new windows, 6,618 in total.
+
+**Board restart in s32.** About 92 s into s32 the board's clock jumped from 2,150,375 ms back to 239 ms (the samples just before show a very hard swing, so probably a brown-out or loose wire). The cues in the labels file follow the board clock too. `dataset.py` now stitches such pieces back together on one clock with a 10 s gap (`_reset_offsets`, `load_labels`), so no window spans the restart; `evaluate_stream.py` uses the same loader. The raw file is unchanged.
+
+Leave one person out (`train.py`, `small` max-pool, seed 0), % of 1 s windows right on the unseen person:
+
+| Never saw | windows right | weakest gestures |
+|---|---|---|
+| P01 | 99.3% | nothing 99% |
+| P02 | 99.8% | nothing 99% |
+| **P10 (new)** | **95.2%** | sword 71% (27 of 140 windows read as nothing, 8 as place, 6 as mine), place 89% (16 of 150 read as mine) |
+
+Replay (`evaluate_stream.py`, default decoder, seeds 0 / 1 / 2), now with 3 unseen people, 612 gesture cues and 46.7 idle minutes per seed:
+
+| | right gesture fired | wrong gesture also fired (per 100 cues) | false triggers / min |
+|---|---|---|---|
+| P01 + P02 (before, mine scoring fix) | 98.8% (3 seeds pooled) | 1.9 | 0.12 |
+| P01 + P02 + P10 | 95.9 / 96.2 / 94.1% | 2.3 / 3.8 / 0.7 | 0.09 / 0.00 / 0.13 |
+
+Per gesture (seeds 0 / 1 / 2): sword 90 / 94 / 93, mine 98 / 98 / 98, place 92 / 93 / 82, swap_left 99 / 98 / 99, swap_right 100 / 98 / 98.
+
+The drop is the new person, not the old ones: P01 and P02 are still 99%+ per window. P10's swords are gentler than P01/P02's, so a model that only saw two people calls many of them "nothing", and some of P10's place jabs look like a chop. That is the "more people's data" problem the architecture sweep pointed at; P10's own data is now in the everyone-model (`training/out/gesture_small.pt`, not committed), so the board model should do better on P10 than this test says. More people (P11 next) is the fix to try before touching the model.
+
+Not done here: int8 export and the board run for the new model.
