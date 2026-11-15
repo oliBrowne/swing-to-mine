@@ -2,6 +2,20 @@
 
 Measured numbers only, each with how it was measured. Add new results at the top of their section.
 
+## A third person: P10 (Nov 14, evening, on the PC)
+
+P10 recorded 3 sessions (s30, s31, s32), 70 cues each, same board and orientation. The board restarted ~92 s into s32 (clock back to 0, probably a loose wire or power dip on a hard swing): times after it are shifted to keep counting up with a 2 s gap, and the cut-off swap_left cue is in `BAD_CUES`.
+
+Leave one person out, `small` model, max pooling, seed 0, per 1 s window:
+
+| never saw | before P10 | with P10 |
+|---|---|---|
+| P01 | 99.0% | 99.4% |
+| P02 | 99.5% | 99.7% |
+| P10 | - | **96.1%** (nothing 100, sword 74, mine 100, place 93, swaps 100) |
+
+Replay like the board (`evaluate_stream.py`, seed 0): P01 + P02 99.1% of cues fired the right gesture; adding P10 as a third unseen person brings it to **96.4%** (false triggers 0.11 per minute). P10 alone: about 88% (sword ~20/30, place ~22/30, mine, swap_left and swap_right all hit). His sword swipes are often read as nothing and some jabs as mine: a gentler style than P01/P02. More people (P11 next) will show whether that is one person's style or a general gap.
+
 ## Max pooling instead of average (Nov 13, afternoon)
 
 `training/model.py` now pools the last 13 time steps with **max** instead of the average (`--pool`, default `max`). Retrained with `train.py` (seed 0), exported with `export.py`, run on the board with `firmware/model_test`, measured the same way as the table below:
