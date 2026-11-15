@@ -69,6 +69,7 @@ BAD_CUES = {
     ("P02", "s07"): {9},             # place cue, no real motion
     ("P02", "s09"): {25},
     ("P02", "s15"): {11, 12, 20},    # 11: swap_right cue, looks like a sword; 20: sword cue, 2+ s of chopping
+    ("P10", "s32"): {24},            # swap_left cue cut in half by a board restart (times repaired, 2 s gap left)
 }
 
 # Where each window starts, in samples relative to the motion onset.
