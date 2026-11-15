@@ -205,3 +205,32 @@ Replay (`evaluate_stream.py`, default decoder, seeds 0 / 1 / 2), 4 unseen people
 Per gesture (seeds 0 / 1 / 2): sword 90 / 91 / 88, mine 98 / 98 / 98, place 94 / 97 / 92, swap_left 97 / 98 / 98, swap_right 100 / 98 / 99. Most of the extra wrong gestures are swap_left cues that also fire swap_right (11 / 18 / 4) and the other way round.
 
 No cues of P10 or P11 have been checked by hand yet (P01/P02 had 17 removed as recording mistakes, see above), so their numbers are not directly comparable to P01/P02's.
+
+## Recording mistakes in P10 / P11 (Nov 14, night, on the PC)
+
+Same check P01/P02 got: the cues that leave-one-person-out models (seeds 0, 1, 2) got mostly wrong, 15 of 381 (P10 s30-s32, P11 s33-s36), each plotted next to good cues of the same person and gesture. Only clear mistakes go into `BAD_CUES`; unusual but real gestures stay in.
+
+- Skipped (6): P10 s32 #59, #70 (sword cue, a short forward jab that looks like his own place); P11 s33 #10 and s34 #32 (sword cue, a single flick like swap_right); P11 s33 #17 and s34 #24 (swap_left cue, flicked right first).
+- Kept (9): P10's slow or wound-up swords (real, just slow: exactly what the model needs to learn), P10 s30 #40 (small, choppy motion, unclear), P11 s34 #26 (left flick then a big right flick, unclear), P11 s33 #4 (weak sword), P11's two hard place jabs read as mine.
+
+| | before | after |
+|---|---|---|
+| never saw P10 (windows, seed 0) | 96.2% | 97.3% (sword 75%) |
+| never saw P11 (windows, seed 0) | 95.0% | 97.2% (sword 94, place 91, swap_left 97) |
+| replay, 4 people, seeds 0 / 1 / 2 | 95.9 / 96.3 / 94.9% | 95.9 / 97.1 / 96.8% |
+| wrong gesture also fired, per 100 cues | 3.7 / 7.1 / 3.5 | 2.1 / 5.8 / 2.0 |
+| false triggers / min | 0.12 / 0.08 / 0.04 | 0.06 / 0.04 / 0.04 |
+
+P10's slow swords are still the weak spot: that's a real gap, not bad data.
+
+## More P10, and the first look-around idle test (Nov 14, night, on the PC)
+
+New P10 sessions: s38 (22 cues, stopped early), s39 (15 sword + 15 place, his weak gestures), s40 (8 cues), s41 + s42 (4.4 min of looking around like in look mode, no cues: all windows count as "nothing"). s37 is left out: about 10 s of data around a 32-minute hole where the board went quiet, and one cue.
+
+**Look-around idle, P10 never seen in training (seeds 0 / 1 / 2):** 4 / 1 / 6 accidental gestures in 4.4 minutes = **0.9 / 0.2 / 1.4 per minute**, all place except 2 swords. That's about 10x the rate measured between cues (0.04-0.16 per minute), so between-cue idle was flattering: slow looking around is a harder test. His gentle movements look like his own place jab.
+
+With all P10 data, leave one person out, seed 0: P10 96.1% of windows (sword 81%, place 96%), P11 96.8%, P01 99.4%, P02 99.9%.
+
+Replay, 4 people, seeds 0 / 1 / 2: right gesture fired **93.6 / 92.8 / 94.4%** (sword 85 / 84 / 92, place 91 / 88 / 88), false triggers 0.09 / 0.04 / 0.16 per minute over 55 idle minutes. Lower than before because s39 adds 30 more of P10's hardest cues (slow swords, places) to the test, not because the model got worse on anyone else.
+
+Next: look-around idle from more people (only P10 has it), and see whether training on it brings the place false triggers down.
