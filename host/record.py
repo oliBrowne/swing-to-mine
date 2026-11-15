@@ -39,6 +39,7 @@ Stop early with Ctrl+C: everything recorded so far is kept.
 
 import argparse
 import math
+import os
 import random
 import sys
 import threading
@@ -105,17 +106,23 @@ LOOK_PROMPTS = [
 LOOK_PROMPT_SECONDS = (4, 8)     # a new prompt every 4-8 s
 
 
-def banner(title, line2="", fill="#"):
+# GO boxes alternate between these two looks, so when the same gesture comes
+# twice in a row you can see that a new cue appeared: (colour code, border).
+CUE_LOOKS = [("\033[1;96m", "#"), ("\033[1;93m", "+")]     # bright cyan, bright yellow
+USE_COLOUR = sys.stdout.isatty() and not os.environ.get("NO_COLOR")
+if USE_COLOUR and os.name == "nt":
+    os.system("")       # turns on colour codes in the Windows console
+
+
+def banner(title, line2="", fill="#", colour=""):
     """Print a big box that is hard to miss, e.g.  M I N E   3 / 20."""
     width = 60
+    lines = [fill * width, fill + " " * (width - 2) + fill]
+    lines += [fill + text.center(width - 2) + fill for text in (title, line2) if text]
+    lines += [fill + " " * (width - 2) + fill, fill * width]
     print()
-    print(fill * width)
-    print(fill + " " * (width - 2) + fill)
-    for text in (title, line2):
-        if text:
-            print(fill + text.center(width - 2) + fill)
-    print(fill + " " * (width - 2) + fill)
-    print(fill * width)
+    for line in lines:
+        print(f"{colour}{line}\033[0m" if colour and USE_COLOUR else line)
 
 
 def feedback(gesture, jolt_g, turn_dps):
@@ -373,7 +380,9 @@ def record(args):
                     done += 1
                     start = board.last_t_ms
                     peak[0] = peak[1] = 0.0
-                    banner(f"GO:   {spaced(SHOWN_AS.get(gesture, gesture))}     {i} / {len(cues)}", HOW_TO.get(gesture, ""))
+                    colour, border = CUE_LOOKS[done % 2]
+                    banner(f"GO:   {spaced(SHOWN_AS.get(gesture, gesture))}     {i} / {len(cues)}",
+                           HOW_TO.get(gesture, ""), fill=border, colour=colour)
                     print(f"  (cue {done} of {total})\a")
                     length = LABEL_LENGTH_MS_FOR.get(gesture, LABEL_LENGTH_MS)
                     labels_file.write(f"{start},{start + length},{gesture}\n")
