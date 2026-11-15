@@ -182,3 +182,38 @@ Per gesture (seeds 0 / 1 / 2): sword 90 / 94 / 93, mine 98 / 98 / 98, place 92 /
 The drop is the new person, not the old ones: P01 and P02 are still 99%+ per window. P10's swords are gentler than P01/P02's, so a model that only saw two people calls many of them "nothing", and some of P10's place jabs look like a chop. That is the "more people's data" problem the architecture sweep pointed at; P10's own data is now in the everyone-model (`training/out/gesture_small.pt`, not committed), so the board model should do better on P10 than this test says. More people (P11 next) is the fix to try before touching the model.
 
 Not done here: int8 export and the board run for the new model.
+
+## Fourth person: P11 (Nov 14, night, on the PC)
+
+New data: P11, sessions s33 (stopped early, 18 cues), s34 (70), s35 (56), s36 (66): 210 cues, no board restarts, one 59 ms gap. 1,131 new windows, 7,745 in total.
+
+The four people swing very differently. Median peak rotation speed during the cue (deg/s):
+
+| | sword | mine | place |
+|---|---|---|---|
+| P01 | 390 | 342 | 98 |
+| P02 | 438 | 289 | 128 |
+| P10 | 211 | 202 | 162 |
+| P11 | 916 | 410 | 228 |
+
+Leave one person out (`train.py`, `small` max-pool, seed 0), % of 1 s windows right on the unseen person:
+
+| Never saw | 3 people (P01, P02, P10) | 4 people (+ P11) | weakest now |
+|---|---|---|---|
+| P01 | 99.3% | 99.1% | place 98% |
+| P02 | 99.8% | 99.8% | |
+| P10 | 95.2% | **96.2%** | sword 67% (19 → nothing, 17 → place, 10 → mine) |
+| **P11 (new)** | | **95.0%** | sword 90% (10 → swap_right), swap_left 90% (16 → swap_right), place 91% (12 → mine) |
+
+Adding P11 helped P10's place a lot (89% → 99%) but not P10's slow swords. P11's errors are the opposite kind: hard flicks that the model also reads as the opposite flick (the wrist bouncing back).
+
+Replay (`evaluate_stream.py`, default decoder, seeds 0 / 1 / 2), 4 unseen people, 761 gesture cues and 49.8 idle minutes per seed:
+
+| | right gesture fired | wrong gesture also fired (per 100 cues) | false triggers / min |
+|---|---|---|---|
+| P01 + P02 + P10 | 95.9 / 96.2 / 94.1% | 2.3 / 3.8 / 0.7 | 0.09 / 0.00 / 0.13 |
+| P01 + P02 + P10 + P11 | 95.9 / 96.3 / 94.9% | 3.7 / 7.1 / 3.5 | 0.12 / 0.08 / 0.04 |
+
+Per gesture (seeds 0 / 1 / 2): sword 90 / 91 / 88, mine 98 / 98 / 98, place 94 / 97 / 92, swap_left 97 / 98 / 98, swap_right 100 / 98 / 99. Most of the extra wrong gestures are swap_left cues that also fire swap_right (11 / 18 / 4) and the other way round.
+
+No cues of P10 or P11 have been checked by hand yet (P01/P02 had 17 removed as recording mistakes, see above), so their numbers are not directly comparable to P01/P02's.
