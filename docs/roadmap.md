@@ -2,6 +2,8 @@
 
 **Goal: working controller done by Thanksgiving (Thu Nov 26).** That leaves Dec 8 for the presentation only, with nothing left to build.
 
+**Status (Nov 15):** data, model and on-board speed test are ahead of plan; the controller itself (USB keyboard/mouse, look/move modes, button) is behind, since week 2's items haven't started. Current state and numbers: [README](../README.md#-where-we-are-nov-15).
+
 Rough budget: about 30 hours each (the course minimum), or about 6 hours a week each for 5 weeks.
 
 Owners are suggestions: **Oliver** on firmware and hardware, **Eli** on the recording script and training, since he wrote the Lab 2 training script. Swap freely. **Everyone records data**, including both of us and any friends we recruit, because more people means a model that works for anyone.
@@ -18,11 +20,11 @@ Present                                                         ★
 
 ## Week 1 · Oct 26 – Nov 1 · Talk to the board
 
-- [ ] Order the gyro (GY-521 MPU-6050) · *Oliver*
+- [x] Order the gyro (GY-521 MPU-6050) · *Oliver*
 - [ ] Firmware project for the F407 Discovery: clock, I2C1, USB OTG FS, button, LEDs · *Oliver*
-- [ ] Read the MPU-6050 at 100 Hz (`WHO_AM_I`, wake it, burst read of accel + gyro) · *Oliver* · code in `firmware/capture` (Nov 12), needs a hardware test
-- [ ] Stream the 6 channels to the PC over USB serial · *Oliver* · UART version in `firmware/capture` for now ([wiring.md](wiring.md))
-- [ ] Host script that records labeled clips to CSV (`host/record.py`) · *Eli* · first version written Nov 12, needs a hardware test
+- [x] Read the MPU-6050 at 100 Hz (`WHO_AM_I`, wake it, burst read of accel + gyro) · *Oliver* · `firmware/capture`, works on hardware
+- [x] Stream the 6 channels to the PC · *Oliver* · over a USB-UART adapter (`firmware/capture`); USB serial not done ([wiring.md](wiring.md))
+- [x] Host script that records labeled clips to CSV (`host/record.py`) · *Eli* · works on hardware, recorded all the data
 - [x] Decide how moving works: toggle + tilt to walk (see [gesture-notes.md](gesture-notes.md#move-mode-tilt-to-walk-default)) · *both*
 
 **Done when:** you can wave the board and watch 6 live lines on the PC, then save a labeled clip.
@@ -33,14 +35,14 @@ Present                                                         ★
 - [ ] Button per [controls.md](controls.md): single press look/move, hold 1 s inventory, double press crouch; LEDs show the mode · *Oliver*
 - [ ] Look mode: gyro "air mouse" with drift calibration · *Oliver*
 - [ ] Move mode: tilt to walk (or whatever we pick in week 1) · *Oliver*
-- [ ] Record pilot data: about 20 reps of each gesture · *everyone*
+- [x] Record pilot data: about 20 reps of each gesture · *everyone*
 - [ ] **Nov 6:** idea and team locked in (course milestone, nothing to submit)
 
 **Done when:** you can walk around and look around in Minecraft with only the board.
 
 ## Week 3 · Nov 9 – Nov 15 · First model + checkpoint
 
-- [ ] Train a first small CNN on the pilot data and check which gestures get confused · *Eli*
+- [x] Train a first small CNN on the pilot data and check which gestures get confused · *Eli*
 - [ ] Full data collection: Oliver, Eli and 2–3 recruited friends, about 25 min each (plan in [gesture-notes.md](gesture-notes.md#data-collection-plan)) · *everyone*
 - [ ] Checkpoint slides: live look/move demo, data plots, first accuracy numbers · *both*
 - [ ] **Nov 12 / 14:** checkpoint presentation
@@ -49,9 +51,9 @@ Present                                                         ★
 
 ## Week 4 · Nov 16 – Nov 22 · ML on the chip
 
-- [ ] Train on the full dataset, testing on a person left out of training · *Eli*
-- [ ] Prune + int8-quantize, export with ExecuTorch (Lab 3 pipeline) · *Eli*
-- [ ] Run the model on the board every ~50 ms on a sliding window · *Oliver*
+- [x] Train on the full dataset, testing on a person left out of training · *Eli*
+- [ ] Prune + int8-quantize, export with ExecuTorch (Lab 3 pipeline) · *Eli* · int8 export done and runs on the board in 3.4 ms; no pruning (not needed so far)
+- [ ] Run the model on the board every ~50 ms on a sliding window · *Oliver* · `firmware/live_test` built, not yet run with the sensor
 - [ ] Turn predictions into inputs: smoothing, cooldowns, hold-to-mine, aim freeze during swings · *Oliver*
 - [ ] Measure: accuracy, lag (motion → input), flash/RAM use, false triggers per minute · *both*
 

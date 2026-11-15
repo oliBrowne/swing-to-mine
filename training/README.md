@@ -2,7 +2,7 @@
 
 Everything from recorded sessions to the model file the firmware runs.
 
-**Status (Nov 13):** `labels.py`, `dataset.py`, `model.py`, `train.py` and `export.py` exist. The rest of the table below is still planned.
+**Status (Nov 15):** `labels.py`, `dataset.py`, `model.py`, `train.py`, `export.py` and `evaluate_stream.py` exist. Four people recorded so far; latest numbers (leave one person out, replay, false triggers) are in [docs/results.md](../docs/results.md). Main open issue: looking around slowly sets off "place". The rest of the table below is still planned.
 
 ## Try it
 
