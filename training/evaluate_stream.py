@@ -30,11 +30,10 @@ from collections import Counter, defaultdict
 from pathlib import Path
 
 import numpy as np
-import pandas as pd
 import torch
 
 sys.path.insert(0, str(Path(__file__).resolve().parent))
-from dataset import BAD_CUES, RAW, WINDOW, class_list, load_all, load_session  # noqa: E402
+from dataset import BAD_CUES, RAW, WINDOW, class_list, load_all, load_labels, load_session  # noqa: E402
 from labels import DROPPED_OLD_NAMES, OLD_NAMES  # noqa: E402
 from train import MIN_TEST_WINDOWS, fit  # noqa: E402
 
@@ -117,9 +116,7 @@ def score_session(csv_path, events, holds, classes):
     """Counts for one session: per-gesture hit/miss/extra and false triggers."""
     person, session = csv_path.parent.name, csv_path.stem
     t, _, _ = load_session(csv_path)
-    labels_path = csv_path.with_name(session + ".labels.csv")
-    labels = pd.read_csv(labels_path) if labels_path.exists() else pd.DataFrame(
-        columns=["start_ms", "end_ms", "label"])
+    labels = load_labels(csv_path)
     bad = BAD_CUES.get((person, session), set())
 
     out = defaultdict(Counter)
