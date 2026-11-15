@@ -2,13 +2,13 @@
 
 Firmware for the STM32F4 Discovery (STM32F407VG), built with CMake + `arm-none-eabi-gcc` (see the toolchain table in architecture.md). See [../docs/architecture.md](../docs/architecture.md) for how the pieces connect.
 
-**Status:** [`capture/`](capture/) is a small stand-alone firmware for recording data (MPU-6050 → UART text stream). It builds but hasn't been tested on hardware yet. [`model_test/`](model_test/) runs the trained gesture model with ExecuTorch on the board and measures it: **3.43 ms** per inference (int8, CMSIS-NN), tested on the board Nov 13. [`live_test/`](live_test/) feeds the MPU-6050 into the model every 50 ms and shows gestures on the LEDs: built and flashed Nov 13, **not yet tested with a sensor**. The main firmware below doesn't exist yet.
+**Status:** [`capture/`](capture/) is a small stand-alone firmware for recording data (MPU-6050 → UART text stream). It works on the board and recorded all our data. [`model_test/`](model_test/) runs the trained gesture model with ExecuTorch on the board and measures it: **3.43 ms** per inference (int8, CMSIS-NN), tested on the board Nov 13. [`live_test/`](live_test/) feeds the MPU-6050 into the model every 50 ms and shows gestures on the LEDs: built and flashed Nov 13, **not yet tested with a sensor**. The main firmware below doesn't exist yet.
 
 ## Planned layout
 
 ```
 firmware/
-  capture/                  ✅ exists: stand-alone data-capture firmware (MPU-6050 -> UART)
+  capture/                  ✅ works on hardware: stand-alone data-capture firmware (MPU-6050 -> UART)
   model_test/               ✅ exists: model speed test (ExecuTorch int8 on the board, results over the ST-LINK)
   live_test/                ⚠️ exists, untested with a sensor: MPU-6050 -> model every 50 ms -> LEDs
   swing_to_mine/            main firmware (CMake, ST HAL/CMSIS as submodules)
