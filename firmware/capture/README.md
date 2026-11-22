@@ -12,7 +12,7 @@ Values are raw counts: accel 2048 per g, gyro 16.4 per °/s. Lines starting with
 
 This is a stopgap until the main firmware has USB serial (milestone M3). The PC side (`host/record.py`) doesn't care which one is sending, because the text format is the same.
 
-**Status:** builds, and the startup and serial output were checked in an emulator (QEMU) with no sensor attached. **Not yet tested on the real board with the MPU-6050.**
+**Status (Nov 15):** works on the real board with the MPU-6050: all the recordings in `data/raw` were made with it (about 100 Hz). Known issue: the board has restarted a few times on very hard swings (likely a loose wire or power), which shows up as the clock jumping back to 0; `training/dataset.py` stitches those back together.
 
 ## Wiring
 

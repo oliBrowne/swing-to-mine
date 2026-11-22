@@ -2,7 +2,7 @@
 
 PC-side Python scripts. **None of these run during play**: the controller needs no PC software. They're for recording data, debugging and the presentation.
 
-**Status:** `record.py` exists (simple version: cues in the terminal, no plan file yet). Tested against a simulated board, not yet against real hardware.
+**Status (Nov 15):** `record.py` works on real hardware and recorded all the data in `data/raw` (four people so far). Random cue order in rounds of 20, big GO boxes that alternate color, a countdown during mine cues, jab strength feedback after place cues, and it stops if the board goes quiet for 1 s. The other scripts below are still ideas.
 
 ## Planned scripts
 
