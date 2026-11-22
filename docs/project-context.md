@@ -23,7 +23,7 @@ Built but **not yet tested**:
 - The newer trigger rules (see section 5) are in the PC replay and in `firmware/live_test/src/main.cpp`, but that firmware has **not been rebuilt and flashed** since.
 
 Written Nov 22 but **checked only without hardware** (Oliver is away from the board until about Thanksgiving):
-- **`firmware/swing_to_mine`**, the controller (PR #NN): USB HID keyboard + mouse on CN5 (TinyUSB 0.21.0 as a git submodule, register-level like the other firmware, no ST HAL), power-on gyro calibration, air mouse (turning speed → mouse, dead zone, freeze above 250 °/s, 60 ms delay a gesture cancels), button/mode/LED state machine exactly as in [controls.md](controls.md), move-mode tilt → `W A S D` + sprint + jump flick, rest-pose pause, and the gesture decoder hooked to clicks / hold / scroll in look mode. Builds without the model by default (`SWING_MODEL=OFF`); `-DSWING_MODEL=ON` links the ExecuTorch model like `live_test` (that path compiles but was never linked or run).
+- **`firmware/swing_to_mine`**, the controller (PR #32): USB HID keyboard + mouse on CN5 (TinyUSB 0.21.0 as a git submodule, register-level like the other firmware, no ST HAL), power-on gyro calibration, air mouse (turning speed → mouse, dead zone, freeze above 250 °/s, 60 ms delay a gesture cancels), button/mode/LED state machine exactly as in [controls.md](controls.md), move-mode tilt → `W A S D` + sprint + jump flick, rest-pose pause, and the gesture decoder hooked to clicks / hold / scroll in look mode. Builds without the model by default (`SWING_MODEL=OFF`); `-DSWING_MODEL=ON` links the ExecuTorch model like `live_test` (that path compiles but was never linked or run).
 - Checked: 71 PC logic tests, decoder identical to `evaluate_stream.py` on 300 random streams, Renode simulator boot + mode switching with a fake MPU-6050, recordings replayed through the air mouse ([results.md](results.md#controller-without-hardware-nov-22-on-the-pc)). CI runs all of these.
 - **Not checked:** USB on a real PC, the real sensor with this firmware, axis signs (`YAW_SIGN`, `PITCH_SIGN`, `SIDE_SIGN` in `src/config.h` are guesses from the recordings), any *tune* number. First-test steps are in [firmware/swing_to_mine/README.md](../firmware/swing_to_mine/README.md#first-test-on-the-board-oliver-when-back-with-the-hardware).
 - All move-mode rules live in `src/tilt_walk.c` + `src/config.h` because PR #11 is on hold; the move-mode jump flick can be switched off with `MOVE_JUMP_ENABLED 0`.
@@ -44,7 +44,7 @@ Honest summary: the ML side is ahead of plan; the controller is now written but 
 |---|---|---|
 | #27 | P11 data only | Redundant: #26 (which included it) was merged Nov 22. Close it. |
 | #11 | Controls: move-mode poses, jump in move mode only | **On hold (Oliver, Nov 22): don't merge.** `main`'s controls.md still shows the older "hop in look mode". |
-| #NN | `firmware/swing_to_mine`: the controller firmware (USB keyboard + mouse, modes, air mouse, walking, gestures), tests, Renode check, CI | Nov 22, not hardware-tested. Needs Oliver's OK to merge. |
+| #32 | `firmware/swing_to_mine`: the controller firmware (USB keyboard + mouse, modes, air mouse, walking, gestures), tests, Renode check, CI | Nov 22, not hardware-tested. Needs Oliver's OK to merge. |
 
 Other branches: `host/look-idle-test` (record.py `--look-minutes` look-around idle test, Nov 13, not merged); `dad-data`, `dad-data-2`, `mom-data`, `p10-data-retrain` (data branches, contents folded into #24/#25/#26).
 
@@ -96,7 +96,7 @@ Full spec in [controls.md](controls.md) (plus PR #11). Summary:
 
 ## 7. Suggested next steps (in order)
 
-1. Review and merge the controller PR (#NN) with Oliver's OK. (#26 and #29 are merged; close #27; #11 is on hold.)
+1. Review and merge the controller PR (#32) with Oliver's OK. (#26 and #29 are merged; close #27; #11 is on hold.)
 2. On the board: `firmware/swing_to_mine` without the model first (USB, sensor, signs), then `SWING_MODEL=ON`. `firmware/live_test` is now mostly superseded by it.
 3. Check the loose-wire restart.
 4. Record look-around idle from several people; retrain.
