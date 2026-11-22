@@ -1,6 +1,6 @@
 # Project context (handoff for teammates and their AI assistants)
 
-This file sums up what Oliver and his AI assistant decided and learned in chat, so that anyone (Eli, or Eli's own AI agent) who clones the repo starts with the same picture. **Last updated: Nov 21, 2026.** If anything here disagrees with the code or with newer docs on `main`, the code and the newer docs win; please fix this file in the same change.
+This file sums up what Oliver and his AI assistant decided and learned in chat, so that anyone (Eli, or Eli's own AI agent) who clones the repo starts with the same picture. **Last updated: Nov 22, 2026.** If anything here disagrees with the code or with newer docs on `main`, the code and the newer docs win; please fix this file in the same change.
 
 ## 1. The project in one paragraph
 
@@ -32,22 +32,19 @@ Built but **not yet tested**:
 
 Honest summary: the ML side is ahead of plan; the controller side (USB, modes, air mouse) is behind and is now the critical path.
 
-## 3. Open pull requests (Nov 21) and what to do with them
+## 3. Open pull requests (Nov 22) and what to do with them
 
-`main` does **not** include these yet. Oliver merges; each merge needs his explicit OK.
+Merged Nov 22: #26 (P11 data, more P10 data, clean-up, look-around idle test), #29 (README status), #30 (this file). #27 was closed (its data is in #26).
 
 | PR | What | Note |
 |---|---|---|
-| #26 | P11 (mom) data + more P10 (dad) data, bad-cue clean-up, first look-around idle test, results | Supersedes #27. Merge #26, then close #27. |
-| #27 | P11 data only | Redundant once #26 is in. |
-| #29 | README "Where we are (Nov 15)" + status lines in folder READMEs | Docs only; merge after #26 (links to its results). |
-| #11 | Controls: move-mode poses, jump in move mode only | Matches Oliver's decisions (section 4); `main`'s controls.md still shows the older "hop in look mode". |
+| #11 | Controls: move-mode poses, jump in move mode only | **On hold:** Oliver isn't sure about it yet. `main`'s controls.md still shows the older "hop in look mode"; `training/labels.py` already treats jump as a move-mode rule. Ask Oliver before relying on either. |
 
-Other branches: `host/look-idle-test` (record.py `--look-minutes` look-around idle test, Nov 13, not merged); `dad-data`, `dad-data-2`, `mom-data`, `p10-data-retrain` (data branches, contents folded into #24/#25/#26).
+Other branches: `host/look-idle-test` (record.py `--look-minutes` look-around idle test, Nov 13, not merged); `firmware/usb-hid-test` (Oct 29 TinyUSB test, not merged); `dad-data`, `dad-data-2`, `mom-data`, `p10-data-retrain` (data branches, contents already on `main`).
 
 ## 4. Controls (decided by Oliver)
 
-Full spec in [controls.md](controls.md) (plus PR #11). Summary:
+Full spec in [controls.md](controls.md). The tip-back / strafe poses and "jump only in move mode" come from PR #11, which Oliver has put **on hold** (not yet confirmed); the rest is on `main`. Summary:
 
 - Board held **upright** like a sword handle, in play and in all recordings.
 - **Three modes**, shown by LEDs: **look** (green), **move** (orange), **inventory** (blue). Red blink = a gesture fired. All-four-LED patterns give feedback while holding the button.
@@ -57,7 +54,7 @@ Full spec in [controls.md](controls.md) (plus PR #11). Summary:
   - double press = crouch on/off (taps `Shift`; in Minecraft set **Sneak = Toggle**);
   - hold 3 s = resync when the board and the game disagree (e.g. after closing a chest by other means). Chest flow: place/use, then hold 3 s.
 - **Look mode** (fighting, building): Wii-remote / air-mouse style. Gyro rotation **rate** → mouse movement, with a dead zone. Fast motions freeze the camera and are treated as gestures instead. Gestures active here only.
-- **Move mode:** neutral angle is zeroed on entry (~0.2 s still); gestures are off. Tilt forward ~15° = walk (`W`); ~40° held 0.3 s = sprint, stays on until back near level (fallback: a forward flick); tip back = `S`; side tilt ~20–25° = strafe `A`/`D`; left/right turning steers the camera (no up/down look). **Jump = quick upward flick, move mode only**, done with a simple accelerometer threshold rule, not the model.
+- **Move mode:** neutral angle is zeroed on entry (~0.2 s still); gestures are off. Tilt forward ~15° = walk (`W`); ~40° held 0.3 s = sprint, stays on until back near level (fallback: a forward flick); tip back = `S`; side tilt ~20–25° = strafe `A`/`D`; left/right turning steers the camera (no up/down look). **Jump = quick upward flick, move mode only** (from PR #11, on hold), done with a simple accelerometer threshold rule, not the model.
 - **Inventory:** gyro moves the cursor (same pointing, slower); button press = left click (pick up / drop). No right-click or shift-click on purpose. Gestures paused. The board tracks inventory state itself, so it can desync if the inventory is closed some other way (that's what resync is for).
 - **Hotbar:** quick flick left / right sends one mouse-wheel step (Java has no next/prev hotbar key).
 - Changing mode releases any held inputs. Set down flat and still = pause output.
@@ -69,13 +66,13 @@ Full spec in [controls.md](controls.md) (plus PR #11). Summary:
 
 **Recording** (`host/record.py`): random gesture order in rounds (default 20 cues), big on-screen cues, press Enter between rounds (`q` stops and saves). Recording keeps running through breaks; unlabeled time counts as `nothing`. The recorder stops by itself if the board goes quiet for 1 s. Oliver explicitly does **not** want the same gesture 10× in a row. Data layout and rules: [../data/README.md](../data/README.md).
 
-**People in the data** (IDs only, no names in the repo): P01, P02, P03, P10, P11 (P11 only in PR #26). Eli's brothers may record more. Recorded cues that were clearly done wrong go into `BAD_CUES` in `training/dataset.py` (skipped, never deleted).
+**People in the data** (IDs only, no names in the repo): P01, P02, P03, P10, P11. Eli's brothers may record more. Recorded cues that were clearly done wrong go into `BAD_CUES` in `training/dataset.py` (skipped, never deleted).
 
 **How a gesture is cut out of a cue:** around the strongest motion burst inside the cue (this lifted unseen-person accuracy from ~95% to ~97.7%).
 
 **Trigger rules** (decoder in `training/evaluate_stream.py`): model every 50 ms on a 1 s window; confidence ≥ 0.60; 3 agreeing guesses in a row; 300 ms cooldown; a gesture can't re-fire until it has stopped winning for 3 runs; mine releases after 400 ms without winning. Keep `evaluate_stream.py` and `firmware/live_test` in step.
 
-**Results so far** (details and how each was measured: [results.md](results.md) and PR #26):
+**Results so far** (details and how each was measured: [results.md](results.md)):
 - Leave-one-person-out, per window: ~96–99% for most people; P10 ~96–97%.
 - Replay like the board: ~93–97% of cues fire the right gesture; ~0.04–0.1 false triggers per minute between cues.
 - **Weak spot 1: look-around idle.** Waving the board around to look (no gesture) causes ~0.2–1.4 false gestures per minute, mostly `place`, about 10× the between-cue rate. Only P10 has look-around idle data. **More look-around idle recordings (Oliver, Eli, others) are the next most useful data.**
@@ -93,7 +90,7 @@ Full spec in [controls.md](controls.md) (plus PR #11). Summary:
 
 ## 7. Suggested next steps (in order)
 
-1. Merge the open PRs (#26 → close #27 → #29 → #11), with Oliver's OK.
+1. Decide on PR #11 (controls), Oliver's call.
 2. Test `firmware/live_test` with the sensor attached; check the loose-wire restart.
 3. USB HID keyboard + mouse on the board (start from `firmware/usb-hid-test` if useful).
 4. Look mode air mouse + the button/LED state machine.
