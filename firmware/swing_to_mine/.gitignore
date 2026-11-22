@@ -1,0 +1,4 @@
+build/
+test/test_controller
+test/replay
+test/libdecoder.so

@@ -2,7 +2,7 @@
 
 You're looking at **Swing to Mine**: a handheld STM32F4 Discovery + MPU-6050 that plays Minecraft (Java Edition) as a USB keyboard + mouse, with an int8 gesture model running on the chip. It's a CU Boulder Embedded AI final project (Fall 2026) by Oliver Browne and Eli Garcia.
 
-**Status (Nov 21):** data capture works on hardware, the gesture model is trained and runs on the board (int8, 3.4 ms), but the controller itself (USB keyboard/mouse, air mouse, button modes) isn't built yet. **Start with [docs/project-context.md](docs/project-context.md)**: it sums up the decisions, status, open PRs and team habits from our chats. Each folder's README says what's planned and what exists.
+**Status (Nov 22):** data capture works on hardware, the gesture model is trained and runs on the board (int8, 3.4 ms). The controller itself (USB keyboard/mouse, air mouse, button modes, in `firmware/swing_to_mine`) is written and checked on a PC and in a simulator, but has **never run on a real board**. **Start with [docs/project-context.md](docs/project-context.md)**: it sums up the decisions, status, open PRs and team habits from our chats. Each folder's README says what's planned and what exists.
 
 ## Read in this order
 
@@ -29,7 +29,7 @@ You're looking at **Swing to Mine**: a handheld STM32F4 Discovery + MPU-6050 tha
 
 | Folder | What goes there | Owner (suggested) |
 |---|---|---|
-| `firmware/` | STM32 firmware (CMake + arm-none-eabi-gcc): sensor, USB, modes, inference | Oliver |
+| `firmware/` | STM32 firmware (CMake + arm-none-eabi-gcc): sensor, USB, modes, inference. `git submodule update --init` for TinyUSB | Oliver |
 | `host/` | PC scripts: record data, live plots, presentation overlay | Eli |
 | `training/` | dataset, models, training, compression, export | Eli |
 | `data/` | recorded sessions and labels | everyone |

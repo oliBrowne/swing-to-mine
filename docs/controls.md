@@ -1,6 +1,6 @@
 # Controls and board states
 
-Every motion and button action, what it does in each mode, and what the firmware has to remember. This is a **spec**: none of it is built yet. [architecture.md](architecture.md#modes) and [gesture-notes.md](gesture-notes.md) follow it.
+Every motion and button action, what it does in each mode, and what the firmware has to remember. This is the **spec**. Since Nov 22 it is implemented in [firmware/swing_to_mine](../firmware/swing_to_mine/README.md), but only checked without hardware (numbers in its `src/config.h`). [architecture.md](architecture.md#modes) and [gesture-notes.md](gesture-notes.md) follow it.
 
 Everything here was decided by Oliver on Nov 12 unless marked 🟡 (suggested, not yet agreed). Numbers marked *tune* are starting values to adjust on the board.
 
