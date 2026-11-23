@@ -1,12 +1,12 @@
 # firmware/swing_to_mine: the controller
 
-> **Status (Nov 22): written and checked without hardware. Never run on a real board yet.** It builds, the logic passes 71 tests on a PC, the gesture decoder fires exactly the same events as `training/evaluate_stream.py`, and it boots in the Renode simulator with a fake sensor and switches modes on simulated button presses. What has **not** been checked: USB on a real PC (no simulator models the USB port), the real MPU-6050 at the same time as USB, the model build with ExecuTorch linked in (the model code compiles against ExecuTorch 1.3.0 headers but was not linked), and every *tune* number in [`src/config.h`](src/config.h).
+> **Status (Nov 22): written and checked without hardware. Never run on a real board yet.** It builds, the logic passes 82 tests on a PC, the gesture decoder fires exactly the same events as `training/evaluate_stream.py`, and it boots in the Renode simulator with a fake sensor and switches modes on simulated button presses. What has **not** been checked: USB on a real PC (no simulator models the USB port), the real MPU-6050 at the same time as USB, the model build with ExecuTorch linked in (the model code compiles against ExecuTorch 1.3.0 headers but was not linked), and every *tune* number in [`src/config.h`](src/config.h).
 
 The board shows up on the PC as a **USB keyboard + mouse** (plug the micro-USB port **CN5** into the PC; keep the mini-USB ST-LINK cable plugged in too, as far as I know CN5 doesn't power the board) and plays Minecraft Java Edition the way [docs/controls.md](../../docs/controls.md) describes:
 
 | | What it does |
 |---|---|
-| **Power on** | all four LEDs spin: keep the board still ~1.5 s while the gyro calibrates, then green = look mode |
+| **Power on** | all four LEDs spin while the gyro calibrates, then green = look mode. On a table it takes ~1.5 s. In a hand, hold it reasonably steady: after ~3 s it takes the calmest second so far (a little less exact; the dead zone hides the rest). If it is being waved about it keeps spinning until you hold it steady for a second |
 | **Look mode** (green) | turning the board moves the camera like a Wii remote; dead zone for hand shake; fast motion freezes the camera. Gestures: sword = left click, mine = hold left click (camera held still), place = right click, swap left/right = one scroll step |
 | **Move mode** (orange) | single press from look mode. Hold still 0.2 s (orange blinks once), then tilt forward = `W`, back = `S`, sideways = `A`/`D`, steep forward for 0.3 s = sprint (`Ctrl`) until you come back near level; turning steers; quick upward flick = jump (`Space`). No gestures |
 | **Inventory** (blue) | hold the button 1 s (sends `E`); the board points the cursor (slower), a press = left click; hold 1 s again closes it (sends `E`) and goes back to look or move |
@@ -52,7 +52,7 @@ While it runs, these variables can be read over the ST-LINK (e.g. adapt `../live
 ## Checks without hardware
 
 ```bash
-make -C test               # logic tests on the PC: 71 checks (button timing, modes, air mouse, walking, gestures, rest pose)
+make -C test               # logic tests on the PC: 82 checks (button timing, modes, air mouse, walking, gestures, rest pose)
 make -C test parity        # decoder == decode() in training/evaluate_stream.py (needs numpy)
 make -C test replay && test/replay ../../data/raw/P10/s42.csv   # a recording through the air mouse
 bash sim/renode_check.sh /path/to/renode    # boots in the Renode simulator with a fake sensor, presses the button

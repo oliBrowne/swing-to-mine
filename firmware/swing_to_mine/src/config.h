@@ -24,9 +24,11 @@
 #define SIDE_SIGN             (+1.0f)/* tune: flip if A and D are swapped in move mode */
 
 /* ---- power-on gyro calibration ---- */
-#define CAL_SAMPLES           150    /* 1.5 s of keeping still */
+#define CAL_SAMPLES           150    /* 1.5 s of keeping still (on a table) */
 #define CAL_STILL_DPS         3.0f   /* each gyro axis must stay within this range (max - min) */
-#define CAL_RELAX_AFTER_MS    6000   /* if it never gets still enough, accept 3x the range after this */
+#define CAL_GIVE_UP_MS        3000   /* never that still (held in a hand)? after this take the calmest second so far */
+#define CAL_BLOCK_SAMPLES     100    /* ... measured in blocks of 1 s */
+#define CAL_FALLBACK_MAX_DPS  15.0f  /* ... but not while it is being waved about: keep waiting for a calmer second */
 
 /* ---- gravity estimate (gyro-corrected low-pass of the accelerometer) ---- */
 #define GRAVITY_ACCEL_WEIGHT  0.02f  /* per sample; 0.02 at 100 Hz ~ 0.5 s time constant */

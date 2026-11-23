@@ -17,6 +17,11 @@ typedef struct {
     int cal_n;
     uint32_t cal_start_ms;
     float cal_sum[3], cal_min[3], cal_max[3];
+    /* fallback: the calmest 1 s block since power-on (config.h CAL_GIVE_UP_MS) */
+    int blk_n, have_best;
+    float blk_sum[3], blk_min[3], blk_max[3];
+    float best_range, best_mean[3];
+    int cal_fallback;       /* 1 = calibration ended on the fallback, not on a still board */
     float bias[3];          /* deg/s */
     /* every sample */
     float gyro[3];          /* deg/s, bias removed */

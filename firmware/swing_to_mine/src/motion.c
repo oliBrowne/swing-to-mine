@@ -23,6 +23,8 @@ int vnormalize(float v[3])
     return 1;
 }
 
+static void block_restart(motion_t *m);
+
 static void cal_restart(motion_t *m)
 {
     m->cal_n = 0;
@@ -39,28 +41,65 @@ void motion_init(motion_t *m, uint32_t now_ms)
     m->cal_start_ms = now_ms;
     m->up[UPRIGHT_AXIS] = -1.0f;   /* upright guess until the first sample */
     cal_restart(m);
+    block_restart(m);
+}
+
+static void block_restart(motion_t *m)
+{
+    m->blk_n = 0;
+    for (int i = 0; i < 3; i++) {
+        m->blk_sum[i] = 0.0f;
+        m->blk_min[i] = 1e9f;
+        m->blk_max[i] = -1e9f;
+    }
 }
 
 /* Power-on calibration: average the gyro over CAL_SAMPLES samples of keeping
- * still. Any movement starts the count again. */
+ * still. Any movement starts the count again.
+ *
+ * A board held in a hand is hardly ever that still, so in parallel every 1 s
+ * block is scored by how much the gyro moved in it, and the calmest block's
+ * average is kept. After CAL_GIVE_UP_MS that average is used instead, as long
+ * as the block was calm enough for a hand (CAL_FALLBACK_MAX_DPS); if the board
+ * is being waved about it keeps waiting for a calmer second. It is a little
+ * less exact, but the dead zone (POINT_DEADZONE_DPS) hides the rest. */
 static int calibrate(motion_t *m, const float g[3], uint32_t now_ms)
 {
-    float limit = CAL_STILL_DPS;
-    if (now_ms - m->cal_start_ms > CAL_RELAX_AFTER_MS) limit *= 3.0f;
+    int still = 1;
     for (int i = 0; i < 3; i++) {
         if (g[i] < m->cal_min[i]) m->cal_min[i] = g[i];
         if (g[i] > m->cal_max[i]) m->cal_max[i] = g[i];
         m->cal_sum[i] += g[i];
+        if (g[i] < m->blk_min[i]) m->blk_min[i] = g[i];
+        if (g[i] > m->blk_max[i]) m->blk_max[i] = g[i];
+        m->blk_sum[i] += g[i];
     }
     m->cal_n++;
-    for (int i = 0; i < 3; i++) {
-        if (m->cal_max[i] - m->cal_min[i] > limit) {
-            cal_restart(m);
-            return 0;
+    for (int i = 0; i < 3; i++)
+        if (m->cal_max[i] - m->cal_min[i] > CAL_STILL_DPS) still = 0;
+    if (!still) cal_restart(m);
+
+    if (++m->blk_n >= CAL_BLOCK_SAMPLES) {
+        float range = 0.0f;
+        for (int i = 0; i < 3; i++)
+            if (m->blk_max[i] - m->blk_min[i] > range) range = m->blk_max[i] - m->blk_min[i];
+        if (!m->have_best || range < m->best_range) {
+            m->have_best = 1;
+            m->best_range = range;
+            for (int i = 0; i < 3; i++) m->best_mean[i] = m->blk_sum[i] / (float)m->blk_n;
         }
+        block_restart(m);
     }
-    if (m->cal_n < CAL_SAMPLES) return 0;
-    for (int i = 0; i < 3; i++) m->bias[i] = m->cal_sum[i] / (float)m->cal_n;
+
+    if (still && m->cal_n >= CAL_SAMPLES) {
+        for (int i = 0; i < 3; i++) m->bias[i] = m->cal_sum[i] / (float)m->cal_n;
+    } else if (m->have_best && m->best_range <= CAL_FALLBACK_MAX_DPS &&
+               now_ms - m->cal_start_ms >= CAL_GIVE_UP_MS) {
+        for (int i = 0; i < 3; i++) m->bias[i] = m->best_mean[i];
+        m->cal_fallback = 1;
+    } else {
+        return 0;
+    }
     m->calibrated = 1;
     return 1;
 }
