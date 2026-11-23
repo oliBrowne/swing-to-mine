@@ -1,102 +1,78 @@
-# Project context (handoff for teammates and their AI assistants)
+# Project context (team notes)
 
-This file sums up what Oliver and his AI assistant decided and learned in chat, so that anyone (Eli, or Eli's own AI agent) who clones the repo starts with the same picture. **Last updated: Nov 22, 2026.** If anything here disagrees with the code or with newer docs on `main`, the code and the newer docs win; please fix this file in the same change.
+Shared notes for both teammates and any AI assistant working in this repo: what's built, what's decided, what's still open, and who is doing what. **Last updated: Nov 23, 2026.** If anything here disagrees with the code or with newer docs on `main`, the code and newer docs win; fix this file in the same change.
 
-## 1. The project in one paragraph
+These notes contain no git or commit rules. Each person uses their own git workflow.
 
-Swing to Mine is a CU Boulder Embedded AI final project (Fall 2026) by Oliver Browne (`oliBrowne`) and Eli Garcia. An STM32F4 Discovery board with an MPU-6050 gyro/accelerometer is held like a sword. A small int8 CNN running **on the chip** recognizes gestures, and the board shows up on the PC as a USB keyboard + mouse that plays **Minecraft Java Edition**. No real keyboard or mouse is used.
+## 1. The project
 
-**Goal:** simple, fun, working, worth posting / putting on a résumé. **Deadline the team set: done by Thanksgiving, Thu Nov 26.** Dec 8 is the final presentation (live demo). Keep scope modest; when in doubt, cut (order in [roadmap.md](roadmap.md#if-we-fall-behind)). The final code must also be copied into the instructor's GitHub Classroom repo at the end.
+Swing to Mine is a CU Boulder Embedded AI final project (Fall 2026) by Oliver Browne and Eli Garcia. An STM32F4 Discovery board with an MPU-6050 gyro/accelerometer is held like a sword. A small int8 CNN running **on the chip** recognizes gestures, and the board shows up on the PC as a USB keyboard + mouse that plays **Minecraft Java Edition**. No real keyboard or mouse is used.
 
-**AI-written code is fine for this project** (Oliver confirmed; unlike some earlier labs).
+**Goal:** simple, fun and working. **Team deadline: done by Thanksgiving (Thu Nov 26).** The final presentation with a live demo is on Dec 8. Keep the scope small; if we fall behind, cut in the order given in [roadmap.md](roadmap.md#if-we-fall-behind). The final code also has to go into the instructor's GitHub Classroom repo at the end. AI-written code is allowed for this project.
 
-## 2. Where things stand (as of Nov 22)
+## 2. Who's doing what (Nov 23)
 
-Done and tested on hardware:
-- **Data capture:** `firmware/capture` (MPU-6050 → USART2 PA2/PA3 at 115200, ~100 Hz, one line per sample: `ms,ax,ay,az,gx,gy,gz` raw ints) + `host/record.py`. Works with a CP2102 USB-serial adapter (needs the Silicon Labs CP210x driver on Windows; see [setup-drivers.md](setup-drivers.md)). The ST-LINK virtual COM port is silent; use the adapter's port.
-- **Training pipeline** in `training/`: `labels.py`, `dataset.py`, `model.py`, `train.py`, `evaluate_stream.py` (replays whole recordings like the board would), `export.py` (int8 ExecuTorch `.pte`).
-- **Model on the board:** `firmware/model_test` runs the int8 model in **3.4 ms** per window at 168 MHz (≈117 KB flash, 41 KB RAM). int8 accuracy ≈ float.
-- CI (GitHub Actions) builds the firmware and checks the Python scripts.
+**Eli** (has the board):
+- Flash and test the controller firmware from **PR #32** (branch `claude/project-thread-wafxeq`, folder `firmware/swing_to_mine`). Follow the "First test on the board" steps in its README, in order: USB shows up as a keyboard + mouse, then the sensor, then directions, then Minecraft, then the model.
+- Report back what happened: whether USB is detected, which directions come out reversed (`YAW_SIGN`, `PITCH_SIGN`, `SIDE_SIGN`), how the air mouse and walking feel, and any restarts or dropouts.
+- Record more data, especially **look-around idle** (waving the board around to look, with no gestures) from several people.
+- **Free to write and change the controls code** (and propose control changes) based on what works in testing.
 
-Built but **not yet tested**:
-- `firmware/live_test`: sensor → model every 50 ms → LEDs. Flashed, never tested with the sensor attached.
-- The newer trigger rules (see section 5) are in the PC replay and in `firmware/live_test/src/main.cpp`, but that firmware has **not been rebuilt and flashed** since.
+**Oliver** (away from the board until about Thanksgiving):
+- Review Eli's test results and the numbers.
+- Settle the open control questions (section 4) together with Eli; the test results should decide them.
+- Write-up, final slides and demo plan.
 
-Written Nov 22 but **checked only without hardware** (Oliver is away from the board until about Thanksgiving):
-- **`firmware/swing_to_mine`**, the controller (PR #32): USB HID keyboard + mouse on CN5 (TinyUSB 0.21.0 as a git submodule, register-level like the other firmware, no ST HAL), power-on gyro calibration, air mouse (turning speed → mouse, dead zone, freeze above 250 °/s, 60 ms delay a gesture cancels), button/mode/LED state machine exactly as in [controls.md](controls.md), move-mode tilt → `W A S D` + sprint + jump flick, rest-pose pause, and the gesture decoder hooked to clicks / hold / scroll in look mode. Builds without the model by default (`SWING_MODEL=OFF`); `-DSWING_MODEL=ON` links the ExecuTorch model like `live_test` (that path compiles but was never linked or run).
-- Checked: 71 PC logic tests, decoder identical to `evaluate_stream.py` on 300 random streams, Renode simulator boot + mode switching with a fake MPU-6050, recordings replayed through the air mouse ([results.md](results.md#controller-without-hardware-nov-22-on-the-pc)). CI runs all of these.
-- **Not checked:** USB on a real PC, the real sensor with this firmware, axis signs (`YAW_SIGN`, `PITCH_SIGN`, `SIDE_SIGN` in `src/config.h` are guesses from the recordings), any *tune* number. First-test steps are in [firmware/swing_to_mine/README.md](../firmware/swing_to_mine/README.md#first-test-on-the-board-oliver-when-back-with-the-hardware).
-- All move-mode rules live in `src/tilt_walk.c` + `src/config.h` because PR #11 is on hold; the move-mode jump flick can be switched off with `MOVE_JUMP_ENABLED 0`.
+Before starting something new, check this section and the open PRs so we don't both work on the same thing.
 
-**Still to do:**
-1. First hardware test of `firmware/swing_to_mine` (USB enumeration, sensor, axis signs), then with `SWING_MODEL=ON`.
-2. Tune in Minecraft: speed, freeze speed (replay suggests trying ~180 °/s, see results.md), tilt angles.
-3. Measure lag, false triggers, memory ([results.md](results.md)).
-4. Hardware check: the board **restarted once on a hard swing** (likely a loose wire or power dip). Check the wiring before demos. The controller restarts its sensor and recalibrates by itself after ~0.2 s of failed reads.
+## 3. Status
 
-Honest summary: the ML side is ahead of plan; the controller is now written but has never touched hardware, so the first board test is the critical path.
+**Working and tested on hardware:**
+- **Data capture:** `firmware/capture` (MPU-6050 → USART2 PA2/PA3 at 115200, ~100 Hz, one line per sample: `ms,ax,ay,az,gx,gy,gz` raw ints) + `host/record.py`, through a CP2102 USB-serial adapter (driver notes in [setup-drivers.md](setup-drivers.md)). The ST-LINK virtual COM port stays silent; use the adapter's port.
+- **Training pipeline** in `training/`: `labels.py`, `dataset.py`, `model.py`, `train.py`, `evaluate_stream.py` (replays whole recordings the way the board would), `export.py` (int8 ExecuTorch `.pte`).
+- **Model on the board:** `firmware/model_test` runs the int8 model in **3.4 ms** per window at 168 MHz (≈117 KB flash, 41 KB RAM). int8 accuracy is about the same as float.
+- CI builds the firmware and checks the Python scripts.
 
-## 3. Open pull requests (Nov 22) and what to do with them
+**Written but not tested on a board:**
+- **`firmware/swing_to_mine`, the controller (PR #32, not merged yet).** It includes the USB keyboard + mouse, gyro calibration, air mouse, the button/mode/LED logic from [controls.md](controls.md), move-mode tilt walking + sprint + jump flick, the rest-pose pause, and the gesture decoder. It has only been checked on a PC (71 logic tests, decoder identical to `evaluate_stream.py`) and in the Renode simulator. USB on a real PC, the real sensor, the axis directions and all the tune values are **unchecked**. All move-mode rules are in `src/tilt_walk.c` + `src/config.h`, and `MOVE_JUMP_ENABLED 0` turns the jump off.
+- `firmware/live_test` (sensor → model → LEDs) was never run with the sensor attached; PR #32 mostly replaces it.
 
-Merged Nov 22: #26 (P11 data, more P10 data, clean-up, look-around idle test), #29 (README status), #30 and #31 (this file). #27 was closed (its data is in #26). Oliver merges; each merge needs his explicit OK.
+**Known hardware issue:** the board restarted once on a hard swing (probably a loose wire or a power dip). Check the wiring before demos.
 
-| PR | What | Note |
-|---|---|---|
-| #11 | Controls: move-mode poses, jump in move mode only | **On hold:** Oliver isn't sure about it yet. `main`'s controls.md still shows the older "hop in look mode"; `training/labels.py` already treats jump as a move-mode rule. Ask Oliver before relying on either. |
-| #32 | `firmware/swing_to_mine`: the controller firmware (USB keyboard + mouse, modes, air mouse, walking, gestures), tests, Renode check, CI | Nov 22, not hardware-tested. Needs Oliver's OK to merge. |
+## 4. Controls
 
-Other branches: `host/look-idle-test` (record.py `--look-minutes` look-around idle test, Nov 13, not merged); `firmware/usb-hid-test` (Oct 29 TinyUSB test, not merged; superseded by #32); `dad-data`, `dad-data-2`, `mom-data`, `p10-data-retrain` (data branches, contents already on `main`).
+Full spec: [controls.md](controls.md). ✅ = decided, ❓ = open (test results should decide it).
 
-## 4. Controls (decided by Oliver)
-
-Full spec in [controls.md](controls.md). The tip-back / strafe poses and "jump only in move mode" come from PR #11, which Oliver has put **on hold** (not yet confirmed); the rest is on `main`. Summary:
-
-- Board held **upright** like a sword handle, in play and in all recordings.
-- **Three modes**, shown by LEDs: **look** (green), **move** (orange), **inventory** (blue). Red blink = a gesture fired. All-four-LED patterns give feedback while holding the button.
-- **Blue button:**
-  - single press = toggle look ⇄ move;
-  - hold ~1 s = open **and** close inventory (sends `E`);
-  - double press = crouch on/off (taps `Shift`; in Minecraft set **Sneak = Toggle**);
-  - hold 3 s = resync when the board and the game disagree (e.g. after closing a chest by other means). Chest flow: place/use, then hold 3 s.
-- **Look mode** (fighting, building): Wii-remote / air-mouse style. Gyro rotation **rate** → mouse movement, with a dead zone. Fast motions freeze the camera and are treated as gestures instead. Gestures active here only.
-- **Move mode:** neutral angle is zeroed on entry (~0.2 s still); gestures are off. Tilt forward ~15° = walk (`W`); ~40° held 0.3 s = sprint, stays on until back near level (fallback: a forward flick); tip back = `S`; side tilt ~20–25° = strafe `A`/`D`; left/right turning steers the camera (no up/down look). **Jump = quick upward flick, move mode only** (from PR #11, on hold), done with a simple accelerometer threshold rule, not the model.
-- **Inventory:** gyro moves the cursor (same pointing, slower); button press = left click (pick up / drop). No right-click or shift-click on purpose. Gestures paused. The board tracks inventory state itself, so it can desync if the inventory is closed some other way (that's what resync is for).
-- **Hotbar:** quick flick left / right sends one mouse-wheel step (Java has no next/prev hotbar key).
-- Changing mode releases any held inputs. Set down flat and still = pause output.
-- 🟡 Suggested, not confirmed: auto gyro recalibration in the rest pose.
+- ✅ Hold the board **upright** like a sword handle, both when playing and in recordings.
+- ✅ **Three modes** with LEDs: **look** (green), **move** (orange), **inventory** (blue). A red blink means a gesture fired.
+- ✅ **Button:** single press switches look ⇄ move. Holding ~1 s opens and closes the inventory (`E`). A double press toggles crouch (taps `Shift`; set Minecraft's Sneak to **Toggle**). Holding 3 s resyncs the board's mode with the game.
+- ✅ **Look mode:** works like an air mouse (turning speed → mouse, with a dead zone). Fast motions freeze the camera and count as gestures. Gestures only work in look mode.
+- ✅ **Move mode:** the neutral angle is zeroed on entry and gestures are off. Tilt forward ~15° = walk (`W`); a steep lean (~40°) held 0.3 s = sprint until you come back near level. Turning steers.
+- ❓ **Move-mode extras** (PR #11, on hold): tip back = `S`, side tilt = strafe `A`/`D`, and jump as an upward flick **only in move mode** (`main`'s controls.md still shows the older "hop in look mode"). PR #32's firmware already does these, so test them and decide.
+- ✅ **Inventory:** turning the board moves the cursor (slower), and a press = left click. There is no right-click or shift-click, and gestures are paused.
+- ✅ **Hotbar:** a flick left/right sends one mouse-wheel step.
+- ❓ Freeze speed for the air mouse: 250 °/s by default; the replay suggests ~180 °/s may feel better ([results.md](results.md)).
+- ❓ Auto gyro recalibration in the rest pose (suggested, not agreed).
+- ❓ All angle and speed numbers marked *tune*.
 
 ## 5. Gestures, data and the model
 
-**Classes** (source of truth: `training/labels.py`): `nothing`, `sword` (side swipe → one left click), `mine` (keep chopping → hold left click), `place` (straight jab forward → right click), `swap_left`, `swap_right` (hotbar flicks → scroll). `jump` is recorded (optional) but not trained; old names `slash/chop/punch` map to the new ones; `hop` and `shake` were dropped.
+- **Classes** (source of truth: `training/labels.py`): `nothing`, `sword` (side swipe → one left click), `mine` (keep chopping → hold left click), `place` (straight jab forward → right click), `swap_left` / `swap_right` (hotbar flicks → scroll). `jump` is recorded but not trained.
+- **Recording** (`host/record.py`): cues come in random order, in rounds of 20, with Enter between rounds. Unlabeled time counts as `nothing`. Cues that were clearly done wrong go into `BAD_CUES` in `training/dataset.py`; they are skipped, not deleted. Data rules: [../data/README.md](../data/README.md).
+- **People:** P01, P02, P03, P10 and P11 (IDs only, never names).
+- **Trigger rules** (decoder in `training/evaluate_stream.py`, copied into the firmware): the model runs every 50 ms on a 1 s window. A gesture fires when confidence is ≥ 0.60 on 3 runs in a row. After that there is a 300 ms cooldown, and the same gesture can't fire again until it has stopped winning for 3 runs. Mine lets go after 400 ms without winning.
+- **Results** ([results.md](results.md)): leave-one-person-out accuracy is ~96–99% of windows. In the replay, ~93–97% of cues fire the right gesture, with ~0.04–0.1 false triggers per minute between cues.
+- **Weak spots:** (1) looking around causes ~0.2–1.4 false gestures per minute, mostly `place`, so more look-around idle data is the most useful next recording; (2) slow swings (one person's `sword` is ~75% right).
+- **Tried without gain:** mirroring, speed augmentation, mixup, ensembles and bigger models. More people's data is what helps.
 
-**Recording** (`host/record.py`): random gesture order in rounds (default 20 cues), big on-screen cues, press Enter between rounds (`q` stops and saves). Recording keeps running through breaks; unlabeled time counts as `nothing`. The recorder stops by itself if the board goes quiet for 1 s. Oliver explicitly does **not** want the same gesture 10× in a row. Data layout and rules: [../data/README.md](../data/README.md).
+## 6. Repo conventions
 
-**People in the data** (IDs only, no names in the repo): P01, P02, P03, P10, P11. Eli's brothers may record more. Recorded cues that were clearly done wrong go into `BAD_CUES` in `training/dataset.py` (skipped, never deleted).
+- Keep the docs in sync with the code (see [../AGENTS.md](../AGENTS.md)). Numbers go in `results.md` with how they were measured.
+- No personal data in the repo: people are P-numbers only, with no emails, home paths or device serials.
 
-**How a gesture is cut out of a cue:** around the strongest motion burst inside the cue (this lifted unseen-person accuracy from ~95% to ~97.7%).
+## 7. Next steps
 
-**Trigger rules** (decoder in `training/evaluate_stream.py`): model every 50 ms on a 1 s window; confidence ≥ 0.60; 3 agreeing guesses in a row; 300 ms cooldown; a gesture can't re-fire until it has stopped winning for 3 runs; mine releases after 400 ms without winning. Keep `evaluate_stream.py` and `firmware/live_test` in step.
-
-**Results so far** (details and how each was measured: [results.md](results.md)):
-- Leave-one-person-out, per window: ~96–99% for most people; P10 ~96–97%.
-- Replay like the board: ~93–97% of cues fire the right gesture; ~0.04–0.1 false triggers per minute between cues.
-- **Weak spot 1: look-around idle.** Waving the board around to look (no gesture) causes ~0.2–1.4 false gestures per minute, mostly `place`, about 10× the between-cue rate. Only P10 has look-around idle data. **More look-around idle recordings (Oliver, Eli, others) are the next most useful data.**
-- **Weak spot 2: slow swings.** P10 swings at about half the speed of others; his `sword` is only ~75% right.
-- Tried and **did not help**: mirroring, speed augmentation (with 2 people), mixup, ensembles, a wider/deeper model. Max pooling over time did help a little and is the default. More people's data is what helps.
-
-## 6. How we work in this repo
-
-- Work on a branch and open a PR; **don't push to `main`.** Oliver asks explicitly before each merge (he often says "push and merge" together, but each merge still needs his ask).
-- **Commits are authored as `oliBrowne`** and contain **no AI co-author / "Generated by" trailer lines.**
-- Don't run two AI sessions on the same task at once (it has already caused duplicated PRs once).
-- Keep the docs in sync with the code in the same change (see [../AGENTS.md](../AGENTS.md)). Numbers go in `results.md` with how they were measured.
-- No personal data in the repo: people are P-numbers only; no emails, home paths or device serials.
-- Plain, non-jargon explanations are preferred when talking to Oliver.
-
-## 7. Suggested next steps (in order)
-
-1. Review and merge the controller PR (#32), Oliver's call. Decide on PR #11 (controls), also Oliver's call.
-2. On the board: `firmware/swing_to_mine` without the model first (USB, sensor, signs), then `SWING_MODEL=ON`. `firmware/live_test` is now mostly superseded by it.
-3. Check the loose-wire restart.
-4. Record look-around idle from several people; retrain.
-5. Play-test in Minecraft, tune, measure, record the demo video (before Nov 26).
+1. Eli: first board test of PR #32 (no model first, then `SWING_MODEL=ON`), and report the results.
+2. Fix the direction signs and tune values from that test; decide the ❓ items in section 4.
+3. Record look-around idle from several people and retrain.
+4. Play-test in Minecraft, measure lag and false triggers, and record the demo video (before Nov 26).
