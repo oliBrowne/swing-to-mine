@@ -239,10 +239,12 @@ Next: look-around idle from more people (only P10 has it), and see whether train
 
 `firmware/swing_to_mine` (USB keyboard + mouse, air mouse, modes) was built and checked with no board, so **none of these numbers come from real hardware**.
 
-- **Size** (`arm-none-eabi-size`, no model): 20.6 KB flash, 3.6 KB RAM. With the model expect roughly the live_test size on top (~105 KB); not built here because ExecuTorch wasn't installed.
-- **Logic tests** (`make -C firmware/swing_to_mine/test`): 71 checks on synthetic sensor data and button presses, all pass.
+- **Size** (`arm-none-eabi-size`, no model): 20.9 KB flash, 3.7 KB RAM. With the model expect roughly the live_test size on top (~105 KB); not built here because ExecuTorch wasn't installed.
+- **Logic tests** (`make -C firmware/swing_to_mine/test`): 82 checks on synthetic sensor data and button presses, all pass.
 - **Decoder parity** (`make ... parity`): the firmware's decoder and `decode()` in `training/evaluate_stream.py` fired identical events on 300 random model-output streams (5,425 events).
 - **Renode simulator** (`sim/renode_check.sh`, Renode 1.15.3, fake MPU-6050 that reports "upright and still"): boots, reads the sensor ~100 times a second, calibrates into look mode (green), single press → move (orange), hold 1 s → inventory (blue), hold 1 s → back to move. Renode has no USB port model, so USB isn't covered.
+
+**Power-on calibration held in a hand** (Nov 23, PC replay of the recordings, not hardware). The old rule (each gyro axis within 3 °/s for 1.5 s) was met in only 0–10% of the hand-held idle cues, so the LEDs would have kept spinning unless the board lay on a table. New rule: after 3 s use the calmest 1 s block so far, if the gyro stayed within 15 °/s in it. Measured by starting calibration 0.5 s before each recorded cue and comparing the result with the average of the calmest second of the whole session: from the 138 idle cues it finished in 3.9 s on average (longest 15.9 s) and the error was 0.7 °/s on average, never above the 3 °/s dead zone; from all 1,082 cues (so mostly while a gesture is being made) the error was above the dead zone in 2% of starts, 5.8 °/s at worst. Without the 15 °/s limit, 9% of idle starts and 18% of all starts ended above the dead zone (worst 56 °/s), which would show as a drifting camera.
 
 **Recordings replayed through the air mouse** (`test/replay`, look mode, no model, so mining doesn't freeze the camera here the way it does once `mine` fires). "Camera" is how fast the view would turn, converting mouse counts at Minecraft's default sensitivity (~0.15° per count, my estimate), averaged over each labelled stretch; "frozen" is the share of time the camera was frozen for fast motion. Look-around = P10 s41 + s42 (4.5 min); gesture cues = P01 s05, P02 s07, P10 s30, P11 s35.
 

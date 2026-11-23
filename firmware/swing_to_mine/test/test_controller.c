@@ -145,6 +145,49 @@ static void test_calibration(void)
               s.c.motion.bias[i], s.bias_dps[i]);
     CHECK(s.sum_dx == 0 && s.sum_dy == 0, "no mouse motion while calibrating");
     CHECK(controller_leds(&s.c, s.now) == LED_GREEN, "green in look mode");
+    CHECK(!s.c.motion.cal_fallback, "a still board calibrates the exact way");
+}
+
+/* Held in a hand it never gets still enough: after ~3 s the calmest second is used. */
+static void test_calibration_in_hand(void)
+{
+    sim_t s;
+    sim_init(&s);
+    for (int ms = 0; ms < 2900; ms++) {       /* hand shake: +-6 deg/s wobble on two axes */
+        s.gyro_dps[0] = 6.0f * sinf(ms * 0.045f);
+        s.gyro_dps[2] = 5.0f * sinf(ms * 0.031f + 1.0f);
+        sim_ms(&s, 1);
+    }
+    CHECK(s.c.mode == MODE_CALIBRATE, "shaky hand: still calibrating before 3 s (mode %d)", s.c.mode);
+    for (int ms = 2900; ms < 4200 && s.c.mode == MODE_CALIBRATE; ms++) {
+        s.gyro_dps[0] = 6.0f * sinf(ms * 0.045f);
+        s.gyro_dps[2] = 5.0f * sinf(ms * 0.031f + 1.0f);
+        sim_ms(&s, 1);
+    }
+    CHECK(s.c.mode == MODE_LOOK, "shaky hand: look mode soon after 3 s (mode %d, t %u)", s.c.mode, (unsigned)s.now);
+    CHECK(s.now < 4200, "shaky hand: done by ~4 s (t %u)", (unsigned)s.now);
+    CHECK(s.c.motion.cal_fallback, "shaky hand: used the fallback");
+    for (int i = 0; i < 3; i++)
+        CHECK(fabsf(s.c.motion.bias[i] - s.bias_dps[i]) < POINT_DEADZONE_DPS, "shaky hand bias axis %d: %.2f vs %.2f",
+              i, s.c.motion.bias[i], s.bias_dps[i]);
+    /* then held still: the left-over error must not drift the camera */
+    s.gyro_dps[0] = s.gyro_dps[2] = 0.0f;
+    sim_reset_counts(&s);
+    sim_ms(&s, 3000);
+    CHECK(s.sum_dx == 0 && s.sum_dy == 0, "no drift after a hand-held calibration (%ld, %ld)", s.sum_dx, s.sum_dy);
+
+    /* waved about: too wild for the fallback, it waits; one calmer second ends it */
+    sim_init(&s);
+    for (int ms = 0; ms < 6000; ms++) {
+        s.gyro_dps[1] = 60.0f * sinf(ms * 0.02f);
+        sim_ms(&s, 1);
+    }
+    CHECK(s.c.mode == MODE_CALIBRATE, "waving it about: still calibrating after 6 s (mode %d)", s.c.mode);
+    for (int ms = 0; ms < 2100 && s.c.mode == MODE_CALIBRATE; ms++) {
+        s.gyro_dps[1] = 4.0f * sinf(ms * 0.045f);
+        sim_ms(&s, 1);
+    }
+    CHECK(s.c.mode == MODE_LOOK, "then a calm hand for 2 s: look mode (mode %d)", s.c.mode);
 }
 
 static void test_button_timing(void)
@@ -473,6 +516,7 @@ static void test_rest_pose(void)
 int main(void)
 {
     test_calibration();
+    test_calibration_in_hand();
     test_button_timing();
     test_modes();
     test_air_mouse();
