@@ -58,4 +58,4 @@ flowchart LR
 
 ## Setup
 
-Python 3, PyTorch, NumPy, pandas (`training/requirements.txt`). `export.py` also needs the ExecuTorch 1.3.0 env from Lab 3 (`~/executorch/et-env`).
+Python 3, PyTorch, NumPy, pandas (`training/requirements.txt`). `export.py` also needs the ExecuTorch 1.3.0 env from Lab 3 (`~/executorch/et-env`); 1.3.1 with torch 2.12 works too, see [firmware/swing_to_mine/README.md](../firmware/swing_to_mine/README.md#build) for setting it up from scratch.

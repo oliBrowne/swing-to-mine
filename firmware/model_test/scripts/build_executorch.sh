@@ -21,9 +21,14 @@ FLAGS="-mcpu=cortex-m4 -mthumb -mfpu=fpv4-sp-d16 -mfloat-abi=hard -fno-pic -fno-
 # aten::convolution.out,aten::relu.out,aten::mean.out,aten::permute_copy.out,aten::addmm.out
 OPS=${OPS:-aten::view_copy.out}
 
+# ExecuTorch 1.3.0 had cmake/toolchains/arm-none-eabi.cmake; 1.3.1 only ships
+# the Arm example toolchain (set to Cortex-M4 below).
+TC=$ET/cmake/toolchains/arm-none-eabi.cmake
+[ -f "$TC" ] || TC=$ET/examples/arm/ethos-u-setup/arm-none-eabi-gcc.cmake
+
 source "$HOME/executorch/et-env/bin/activate"
 cmake -S "$ET" -B "$B" -G Ninja \
-  -DCMAKE_TOOLCHAIN_FILE="$ET/cmake/toolchains/arm-none-eabi.cmake" \
+  -DCMAKE_TOOLCHAIN_FILE="$TC" -DTARGET_CPU=cortex-m4 \
   -DCMAKE_BUILD_TYPE=Release -DEXECUTORCH_OPTIMIZE_SIZE=OFF \
   -DCMAKE_C_FLAGS="$FLAGS" -DCMAKE_CXX_FLAGS="$FLAGS" \
   -DCMAKE_C_FLAGS_RELEASE="-O3 -DNDEBUG -ffunction-sections -fdata-sections" \

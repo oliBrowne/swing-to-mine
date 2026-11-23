@@ -100,6 +100,11 @@ void hid_out_task(void)
     }
 }
 
+/* After plugging in again (or the PC waking up) the PC has forgotten what is
+ * held: send the current keys and buttons once more. */
+void tud_mount_cb(void) { keyboard_dirty = mouse_dirty = 1; }
+void tud_resume_cb(void) { keyboard_dirty = mouse_dirty = 1; }
+
 /* No GET_REPORT / SET_REPORT (e.g. caps lock LED) needed. */
 uint16_t tud_hid_get_report_cb(uint8_t instance, uint8_t report_id, hid_report_type_t report_type,
                                uint8_t *buffer, uint16_t reqlen)

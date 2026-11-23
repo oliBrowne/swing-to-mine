@@ -30,6 +30,6 @@ check single-press    2 0x2000 "single press -> move mode, orange"
 check hold-1s         3 0x8000 "hold 1 s -> inventory, blue"
 check hold-1s-again   2 0x2000 "hold 1 s again -> back to move, orange"
 samples=$(echo "$OUT" | awk '/STEP samples/ { f = 1; next } f && /^0x/ { print; exit }')
-if [ "$((samples))" -gt 700 ]; then echo "PASS $((samples)) sensor samples in ~8.5 s (~100 a second)"
+if [ "$((samples))" -gt 700 ]; then echo "PASS $((samples)) sensor samples in ~7.5 s (~100 a second)"
 else echo "FAIL only $((samples)) sensor samples"; fail=1; fi
 exit $fail
