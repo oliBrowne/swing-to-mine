@@ -92,7 +92,7 @@ CI runs the first four on every push. `renode_gestures.sh` needs the `SWING_MODE
 | `src/button.c` | debounce, single / double / hold 1 s / hold 3 s, instant click in the inventory |
 | `src/motion.c` | gyro calibration at power-on, gravity direction ("up") from accel + gyro |
 | `src/air_mouse.c` | turning speed → mouse, dead zone, freeze on fast motion, 60 ms delay a gesture can cancel |
-| `src/tilt_walk.c` | move mode: neutral angle, W/A/S/D, sprint, jump flick (everything move-mode, kept in one place because PR #11 is on hold) |
+| `src/tilt_walk.c` | move mode: neutral angle, W/A/S/D, sprint, jump flick (everything move-mode in one place, so it is easy to tune; described in [controls.md](../../docs/controls.md#move-mode-walking-and-sprinting)) |
 | `src/gesture_decoder.c` | model winners → events, same rules as `training/evaluate_stream.py` and `../live_test` |
 | `src/model_executorch.cpp` / `model_none.c` | the int8 model via ExecuTorch (`SWING_MODEL=ON`) or nothing |
 | `src/hid_out.c`, `usb_descriptors.c`, `tusb_config.h` | USB: one HID interface, report 1 = keyboard, 2 = mouse, polled every 1 ms |
@@ -106,7 +106,7 @@ Shared with the other firmware: `../model_test/src/board.c` (168 MHz clock, LEDs
 
 - **No USB serial (CDC) yet**, only keyboard + mouse. Data recording still goes through `../capture` and the UART adapter. Debug info is in the `g_*` variables instead.
 - Files are flat in `src/` instead of `Core/` + `App/`, and there is no ST HAL (registers directly, like the other firmware here).
-- **Jump** is the move-mode upward flick from PR #11 / project-context.md, since the model has no jump class. It can be turned off with `MOVE_JUMP_ENABLED 0` in `config.h` while #11 is on hold.
+- **Jump** is the move-mode upward flick ([controls.md](../../docs/controls.md#move-mode-walking-and-sprinting)), since the model has no jump class. It can be turned off with `MOVE_JUMP_ENABLED 0` in `config.h`.
 - Rest pose: "flat" means less than half of gravity along the handle; it doesn't recalibrate the gyro (the 🟡 auto-recalibration idea isn't built). Button presses are ignored while resting (Nov 23). Holding it pointed forward like a TV remote, steady for 1 s, still counts as "flat": that rule is an open question for the board test.
 
 ## Checklist

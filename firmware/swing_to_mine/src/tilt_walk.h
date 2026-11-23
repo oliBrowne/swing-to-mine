@@ -1,7 +1,7 @@
 /* Move mode: tilt from a saved neutral angle -> W A S D, sprint, jump.
  *
  * All the move-mode rules are here and their numbers in config.h, so they are
- * easy to change (the move-mode poses in PR #11 are on hold, Nov 22).
+ * easy to change. docs/controls.md ("Move mode") describes this behavior.
  *  - Entering move mode: hold still MOVE_ZERO_MS, then "up" is saved as neutral.
  *  - Forward tilt >= WALK_DEG: W. Back: S. Side >= STRAFE_DEG: A / D.
  *  - Forward >= SPRINT_DEG for SPRINT_HOLD_MS: W + Ctrl until back under WALK_DEG.

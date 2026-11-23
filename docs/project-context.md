@@ -1,6 +1,6 @@
 # Project context (team notes)
 
-Shared notes for both teammates and any AI assistant working in this repo: what's built, what's decided, what's still open, and who is doing what. **Last updated: Nov 23, 2026 (late evening).** If anything here disagrees with the code or with newer docs on `main`, the code and newer docs win; fix this file in the same change.
+Shared notes for both teammates and any AI assistant working in this repo: what's built, what's decided, what's still open, and who is doing what. **Last updated: Nov 23, 2026 (late evening; move-mode docs Nov 23).** If anything here disagrees with the code or with newer docs on `main`, the code and newer docs win; fix this file in the same change.
 
 These notes contain no git or commit rules. Each person uses their own git workflow.
 
@@ -48,7 +48,7 @@ Full spec: [controls.md](controls.md). ✅ = decided, ❓ = open (test results s
 - ✅ **Button:** single press switches look ⇄ move. Holding ~1 s opens and closes the inventory (`E`). A double press toggles crouch (taps `Shift`; set Minecraft's Sneak to **Toggle**). Holding 3 s resyncs the board's mode with the game.
 - ✅ **Look mode:** works like an air mouse (turning speed → mouse, with a dead zone). Fast motions freeze the camera and count as gestures. Gestures only work in look mode.
 - ✅ **Move mode:** the neutral angle is zeroed on entry and gestures are off. Tilt forward ~15° = walk (`W`); a steep lean (~40°) held 0.3 s = sprint until you come back near level. Turning steers.
-- ❓ **Move-mode extras** (PR #11, on hold): tip back = `S`, side tilt = strafe `A`/`D`, and jump as an upward flick **only in move mode** (`main`'s controls.md still shows the older "hop in look mode"). PR #32's firmware already does these, so test them and decide.
+- ❓ **Move-mode extras** (in the firmware, not yet tested on hardware; Eli to tune on the board): tip back ~15° = `S`, side tilt ~22° = strafe `A`/`D`, and jump as an upward flick **only in move mode**. [controls.md](controls.md#move-mode-walking-and-sprinting) now describes exactly what the code does. PR #11 (the older proposal) was closed as superseded.
 - ✅ **Inventory:** turning the board moves the cursor (slower), and a press = left click. There is no right-click or shift-click, and gestures are paused.
 - ✅ **Hotbar:** a flick left/right sends one mouse-wheel step.
 - ❓ Freeze speed for the air mouse: 250 °/s by default; the replay suggests ~180 °/s may feel better ([results.md](results.md)).
