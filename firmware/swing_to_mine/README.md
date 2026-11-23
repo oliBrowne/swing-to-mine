@@ -37,7 +37,7 @@ cmake --build build
 
 Flash `build/swing_to_mine.bin` like the other firmware (`bash ../model_test/scripts/flash.sh build/swing_to_mine.bin`, or drag-and-drop the `.bin` onto the ST-LINK drive).
 
-## First test on the board (Oliver, when back with the hardware)
+## First test on the board
 
 Go in this order; each step only needs the ones before it.
 
