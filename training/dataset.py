@@ -69,6 +69,7 @@ BAD_CUES = {
     ("P02", "s07"): {9},             # place cue, no real motion
     ("P02", "s09"): {25},
     ("P02", "s15"): {11, 12, 20},    # 11: swap_right cue, looks like a sword; 20: sword cue, 2+ s of chopping
+    ("P07", "s2"): {1, 2, 32, 33},   # swap_left, swap_left, swap_right, swap_left
     ("P10", "s32"): {24, 59, 70},    # 24: swap_left cut in half by a board restart; 59, 70: sword cue, a short forward jab like his place
     ("P11", "s33"): {10, 17},        # 10: sword cue, a hotbar-style flick; 17: swap_left cue, flicked right first, then 3 more flicks
     ("P11", "s34"): {24, 32},        # 24: swap_left cue, flicked right; 32: sword cue, a flick like swap_right
