@@ -3,6 +3,8 @@
     python training/export.py                 # int8, CMSIS-NN ops (what the board runs: 3.4 ms)
     python training/export.py --float         # float32, portable ops only (64 ms at -O3, for comparison)
     python training/export.py --width tiny    # another trained width
+    python training/export.py --checkpoint training/out/gesture_bn50.pt --out-dir training/out/model_test_bn50
+                                              # a pruned model from prune.py
 
 Reads training/out/gesture_<width>.pt (from train.py) and writes
 training/out/model_test/ (or model_test_float/):
@@ -123,12 +125,14 @@ def main():
     ap = argparse.ArgumentParser(description=__doc__.split("\n")[0])
     ap.add_argument("--width", default="small")
     ap.add_argument("--float", action="store_true", help="float32 with portable ops instead of int8")
+    ap.add_argument("--checkpoint", type=Path, help="any checkpoint (default: training/out/gesture_<width>.pt)")
+    ap.add_argument("--out-dir", type=Path, help="where to write (default: training/out/model_test[_float])")
     args = ap.parse_args()
 
     import executorch.exir as exir
     from executorch.exir import ExecutorchBackendConfig
 
-    net, ck = load_checkpoint(HERE / "out" / f"gesture_{args.width}.pt")
+    net, ck = load_checkpoint(args.checkpoint or HERE / "out" / f"gesture_{args.width}.pt")
     classes = ck["classes"]
     print(f"model '{ck['width']}', {net.pool} pooling")
 
@@ -145,7 +149,7 @@ def main():
         with torch.no_grad():
             ref = model(Xt[picks]).numpy()
         windows = X[picks]                                  # [N, 6, 100]
-        out_dir = HERE / "out" / "model_test_float"
+        out_dir = args.out_dir or HERE / "out" / "model_test_float"
     else:
         m2 = GestureNet2d(net).eval()
         gm, edge = quantize(m2, Xt, y, len(classes))
@@ -156,7 +160,7 @@ def main():
         print(f"int8 vs float on all {len(X)} windows: same top class on "
               f"{100 * (q_all.argmax(1) == float_scores.argmax(1)).mean():.2f}%")
         windows = X[picks].transpose(0, 2, 1)               # channels-last: [N, 100, 6]
-        out_dir = HERE / "out" / "model_test"
+        out_dir = args.out_dir or HERE / "out" / "model_test"
 
     prog = edge.to_executorch(config=ExecutorchBackendConfig(extract_delegate_segments=False))
     plan = prog.executorch_program.execution_plan[0]

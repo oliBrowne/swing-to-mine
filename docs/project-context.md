@@ -17,6 +17,7 @@ Swing to Mine is a CU Boulder Embedded AI final project (Fall 2026) by Oliver Br
 - Report back what happened: whether USB is detected, which directions come out reversed (`YAW_SIGN`, `PITCH_SIGN`, `SIDE_SIGN`), how the air mouse and walking feel, and any restarts or dropouts.
 - Record more data, especially **look-around idle** (waving the board around to look, with no gestures) from several people.
 - **Free to write and change the controls code** (and propose control changes) based on what works in testing.
+- Optional, when there's time: the board tests in [compression-and-speed.md](compression-and-speed.md#5-tests-that-need-the-board-to-fill-in) (speed of each model size, controller loop time, live accuracy, motion-to-click time).
 
 **Oliver** (away from the board until about Thanksgiving):
 - Review Eli's test results and the numbers.
@@ -74,6 +75,7 @@ Fixed on Nov 23 (no longer open): power-on calibration while held in a hand (PR 
 - **Results** ([results.md](results.md)): leave-one-person-out accuracy was ~96–99% of windows with 4 people; with all 8 people (Nov 23) it is 93.6–99.7% per unseen person (sword is the weakest class, 91% on average). In the replay, ~93–97% of cues fire the right gesture, with ~0.04–0.1 false triggers per minute between cues.
 - **Weak spots:** (1) looking around causes ~0.2–1.4 false gestures per minute, mostly `place`, so more look-around idle data is the most useful next recording; (2) slow swings (one person's `sword` is ~75% right).
 - **Tried without gain:** mirroring, speed augmentation, mixup, ensembles and bigger models. More people's data is what helps.
+- **Pruning and speed (Labs 3 and 4, Nov 23, PC + Renode only):** pruning to 75/50/35/25% of the channels works but is no better than training the smaller model directly, and the channel-picking criterion barely matters. int8 is free at every size. The 75% model matches the full one; smaller ones (trained small) lose 1–3 points. Simulated time 3.41 → ~2.5 / 1.7 / 1.1 ms. The board keeps the full model. Write-up and a board test plan with empty tables: [compression-and-speed.md](compression-and-speed.md).
 
 ## 6. Repo conventions
 

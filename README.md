@@ -56,7 +56,7 @@
 </p>
 
 1. **Sense:** an MPU-6050 gyro + accelerometer is sampled at 100 Hz into a sliding window.
-2. **Think:** a pruned, int8-quantized CNN (exported with ExecuTorch) classifies the latest window every ~50 ms on the Cortex-M4.
+2. **Think:** a small int8-quantized CNN (exported with ExecuTorch) classifies the latest window every ~50 ms on the Cortex-M4.
 3. **Act:** the USB OTG port runs as a composite HID keyboard + mouse and sends the matching input.
 4. **Play:** the target is under 100 ms from motion to input, so a jump lands when you jump.
 
@@ -90,12 +90,34 @@ Week-by-week plan with owners: [docs/roadmap.md](docs/roadmap.md) · Goals and s
 | Nov 26 | Done by Thanksgiving | Int8 model running on the board, full controller working, demo video recorded |
 | Dec 8 | Final presentation | Live demo: play Minecraft in front of the class |
 
-## 🧱 Why it's an Embedded AI project
+## 🧱 How the course labs show up in the project
 
-- **Our own dataset:** record every gesture from several people, like the Lab 2 accelerometer dataset.
-- **Fit it on the chip:** prune and int8-quantize with ExecuTorch, like Lab 3, within 1 MB of flash and 192 KB of RAM.
-- **New challenges:** classify a live stream instead of fixed clips, ignore random movement, and meet a real-time latency budget.
-- **Real results:** measure accuracy vs. latency vs. model size, with and without the gyro.
+| Lab | What it was | Where it is in Swing to Mine |
+|---|---|---|
+| **Lab 2: dataset** | Record and document an accelerometer gesture dataset | Our own dataset: ~1,000 cued gestures from 8 people, recorded with [`host/record.py`](host/README.md), with labels, bad-cue marking and person IDs only ([data/README.md](data/README.md)). Every accuracy number is on a person the model never saw. |
+| **Lab 3: compress** | Channel-prune a CNN, fine-tune, int8 with ExecuTorch, check it in Renode | The gesture model runs int8 on the chip through ExecuTorch + CMSIS-NN. We pruned it to 75 / 50 / 35 / 25% of its channels three ways and compared with training the small model directly, in float and int8, and ran every size in Renode. |
+| **Lab 4: accelerate** | Map a CNN onto hardware and find where the cycles go | Measured on the board: 152 ms → 3.4 ms per run (44×) from build flags, int8 and CMSIS-NN's DSP kernels. A simulator profile shows where the remaining time goes. |
+
+### Shrinking and speeding up the model (Labs 3 and 4)
+
+Full write-up, method and board test plan: **[docs/compression-and-speed.md](docs/compression-and-speed.md)**. All of it except the 3.41 ms was run without the board (PC + Renode simulator, Nov 23), on 7 people the model never saw, 3 training seeds.
+
+| Model (channels per layer) | Params | Accuracy, float / int8 | Right gesture fired (replay) | Model file | Time per run |
+|---|---|---|---|---|---|
+| **Full (16/24/32), what the board runs** | 6,774 | 97.0% / 97.0% | 94.7% | 21.8 KB | **3.41 ms, measured** |
+| 75%, trained small from scratch | 4,002 | 97.3% / 97.4% | 95.4% | 15.9 KB | ~2.5 ms, simulated |
+| 50%, trained small from scratch | 1,950 | 95.9% / 95.7% | 93.3% | 11.3 KB | ~1.7 ms, simulated |
+| 50%, pruned (batch-norm scale, Lab 3's best) + fine-tuned | 1,950 | 94.8% / 94.8% | 92.1% | 11.3 KB | ~1.7 ms, simulated |
+| 25%, trained small from scratch | 618 | 94.2% / 94.2% | 91.4% | 8.3 KB | ~1.1 ms, simulated |
+| 25%, pruned (batch-norm scale) + fine-tuned | 618 | 88.9% / 90.0% | 83.6% | 8.3 KB | ~1.1 ms, simulated |
+
+What we found:
+
+- **int8 is free** at every size (same answer as float on 98–100% of windows).
+- **Pruning works but doesn't beat training the smaller model directly.** With equal training after the cut it catches up; with the usual short fine-tune the best pruned model is 0.5–4 points behind. Which channels get cut (batch-norm scale, weight size, or random) made little difference, unlike in Lab 3: this model is already tiny, so there's little dead weight to find.
+- **A 40% smaller model (75%) loses nothing**; below half size, accuracy and the replay hit rate drop.
+- **Time doesn't shrink as fast as size:** 89% fewer multiply-adds is only ~68% less work, because about half of each convolution is moving data into place, not multiplying (simulator profile).
+- **Nothing here needs the smaller model:** the full model uses ~7% of the 50 ms between runs and ~11% of the flash, so the board keeps the full model for now. The simulated times are estimates calibrated on the one real board measurement; [the test plan](docs/compression-and-speed.md#5-tests-that-need-the-board-to-fill-in) has empty tables for the real speed, live accuracy, reaction time and power.
 
 ## 🔌 Hardware
 

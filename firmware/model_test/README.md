@@ -42,6 +42,18 @@ python scripts/readback.py
 
 **Float version** (portable kernels only, for comparison): run `python training/export.py --float`, then build ExecuTorch with the float ops (`OPS=aten::convolution.out,aten::relu.out,aten::mean.out,aten::permute_copy.out,aten::addmm.out bash scripts/build_executorch.sh <other_dir>`), then configure with `-DCORTEX_M=OFF -DMODEL_DIR=../../training/out/model_test_float -DET_BUILD=<other_dir>`.
 
+## In the simulator (no board)
+
+`sim/renode_count.sh` runs this firmware in Renode and counts the **instructions per inference** (Renode has no real timing, and the cycle counter reads 0 there), plus the simulated chip's top gesture per test window. Build with `-DSIM_NO_DELAY` so the 50 ms wait between rounds isn't counted:
+
+```bash
+cmake -B build-sim -G Ninja -DCMAKE_TOOLCHAIN_FILE=arm-gcc-toolchain.cmake -DCMAKE_CXX_FLAGS=-DSIM_NO_DELAY
+cmake --build build-sim
+bash sim/renode_count.sh path/to/renode build-sim/model_test.elf
+```
+
+The full model runs 400,000 instructions in Renode and 573,250 cycles on the board (1.43 cycles per instruction); the other model sizes and how their time was estimated from that are in [docs/compression-and-speed.md](../../docs/compression-and-speed.md). To test another model: `-DMODEL_DIR=<folder from export.py --out-dir>`.
+
 ## Things that took a while to find
 
 - **No `-mno-unaligned-access`.** ExecuTorch's `cmake/toolchains/arm-none-eabi.cmake` adds it. CMSIS-NN reads 4 bytes at a time through `memcpy`, and with this flag each read becomes a real `memcpy` call. That was ~70% of the inference time (21.5 ms instead of 3.4 ms), found by sampling the PC over the debugger. The Cortex-M4 does unaligned loads in hardware, so `build_executorch.sh` sets `CMAKE_C_FLAGS`/`CMAKE_CXX_FLAGS` itself to leave the flag out.
