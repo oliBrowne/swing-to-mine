@@ -1,0 +1,34 @@
+# Runs firmware/model_test (built with -DSIM_NO_DELAY) in Renode and counts the
+# instructions the core executes per inference. Use sim/renode_count.sh.
+#
+# Renode is NOT cycle accurate: it executes instructions, it does not model
+# pipeline stalls, flash wait states or the cache, and it does not implement
+# the DWT cycle counter (it reads 0). So the firmware's own timing is useless
+# here; instead we read Renode's executed-instruction counter twice and divide
+# by the number of inferences finished in between.
+mach create
+machine LoadPlatformDescription @platforms/boards/stm32f4_discovery-kit.repl
+sysbus.nvic Frequency 168000000
+sysbus.cpu PerformanceInMips 168
+sysbus LoadELF $elf
+emulation RunFor "0.3"
+echo "STEP first"
+sysbus ReadDoubleWord $g_iterations
+sysbus.cpu ExecutedInstructions
+emulation RunFor $seconds
+echo "STEP second"
+sysbus ReadDoubleWord $g_iterations
+sysbus.cpu ExecutedInstructions
+sysbus ReadDoubleWord $g_magic
+sysbus ReadDoubleWord $g_stage
+sysbus ReadDoubleWord $g_error
+sysbus ReadDoubleWord $g_method_pool_used
+sysbus ReadDoubleWord $g_max_abs_diff
+sysbus ReadDoubleWord $a0
+sysbus ReadDoubleWord $a1
+sysbus ReadDoubleWord $a2
+sysbus ReadDoubleWord $a3
+sysbus ReadDoubleWord $a4
+sysbus ReadDoubleWord $a5
+echo "STEP end"
+quit

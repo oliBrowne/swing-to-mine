@@ -158,6 +158,8 @@ int main(void) {
             led_set(led);
         }
         g_max_abs_diff = maxdiff;
+#ifndef SIM_NO_DELAY   /* sim/renode_count.sh counts instructions per loop: no busy wait there */
         board_delay_ms(50);
+#endif
     }
 }

@@ -50,18 +50,19 @@ def augment(x: torch.Tensor) -> torch.Tensor:
     return torch.cat([R @ x[:, :3], R @ x[:, 3:]], dim=1)
 
 
-def fit(X, y, n_classes, width, epochs, seed, pool="max"):
+def fit(X, y, n_classes, width, epochs, seed, pool="max", model=None, lr=3e-3):
+    """Train a new GestureNet, or keep training `model` (fine-tuning after pruning)."""
     torch.manual_seed(seed)
-    model = GestureNet(n_classes, width, pool)
+    model = model if model is not None else GestureNet(n_classes, width, pool)
     X, y = torch.from_numpy(X), torch.from_numpy(y)
 
     # Rare classes count more, so "nothing" (most of the data) cannot drown them.
     counts = torch.bincount(y, minlength=n_classes).float().clamp(min=1)
     loss_fn = nn.CrossEntropyLoss(weight=(counts.sum() / counts / n_classes).clamp(max=5),
                                   label_smoothing=0.05)
-    opt = torch.optim.AdamW(model.parameters(), lr=3e-3, weight_decay=1e-3)
+    opt = torch.optim.AdamW(model.parameters(), lr=lr, weight_decay=1e-3)
     steps = epochs * ((len(X) + 63) // 64)
-    sched = torch.optim.lr_scheduler.OneCycleLR(opt, max_lr=3e-3, total_steps=steps)
+    sched = torch.optim.lr_scheduler.OneCycleLR(opt, max_lr=lr, total_steps=steps)
 
     model.train()
     for _ in range(epochs):

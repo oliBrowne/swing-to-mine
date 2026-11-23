@@ -2,6 +2,22 @@
 
 Measured numbers only, each with how it was measured. Add new results at the top of their section.
 
+## Pruning, int8 and simulated speed per model size (Nov 23, PC + Renode, no board)
+
+Full method, all tables and the board test plan: [compression-and-speed.md](compression-and-speed.md). Leave one person out over the 7 testable people, 3 seeds (seed-to-seed spread of the 7-person average ≈ ±0.6 points), `training/prune.py`. int8 = the board's CortexMQuantizer, PyTorch reference on the PC. Time: Renode 1.15.3 instruction count × 1.43 cycles per instruction (the ratio of the full model's 573,250 board cycles to its 400,000 Renode instructions), so only the full model's time is measured.
+
+| Model (channels) | Params | float | int8 | Replay: right gesture | False / min | Flash (firmware) | Time per run |
+|---|---|---|---|---|---|---|---|
+| full (16/24/32) | 6,774 | 97.0% | 97.0% | 94.7% | 0.10 | 116,912 B | 3.41 ms (board) |
+| 75%, from scratch | 4,002 | 97.3% | 97.4% | 95.4% | 0.16 | 111,024 B | ~2.50 ms (sim) |
+| 75%, bn-pruned + 10 ep | 4,002 | 96.2% | 96.2% | 93.4% | 0.12 | 111,024 B | ~2.50 ms (sim) |
+| 50%, from scratch | 1,950 | 95.9% | 95.7% | 93.3% | 0.21 | 106,416 B | ~1.70 ms (sim) |
+| 50%, bn-pruned + 10 ep | 1,950 | 94.8% | 94.8% | 92.1% | 0.22 | 106,416 B | ~1.70 ms (sim) |
+| 25%, from scratch | 618 | 94.2% | 94.2% | 91.4% | 0.44 | 103,408 B | ~1.11 ms (sim) |
+| 25%, bn-pruned + 10 ep | 618 | 88.9% | 90.0% | 83.6% | 0.28 | 103,408 B | ~1.11 ms (sim) |
+
+L1 and random channel picks were within noise of batch-norm scale except at 25%. With 30 epochs of fine-tuning (seed 0 only), pruned models match training from scratch at 50% and 35% and the best one (bn) comes within ~1 point at 25% (L1 stays 3.6 behind). RAM (`data`+`bss`) is 41,848 B for every size (fixed pools). Renode profile of the full model: 94% of instructions are in the convolutions, about half of that gathering input data rather than multiplying.
+
 ## Max pooling instead of average (Nov 13, afternoon)
 
 `training/model.py` now pools the last 13 time steps with **max** instead of the average (`--pool`, default `max`). Retrained with `train.py` (seed 0), exported with `export.py`, run on the board with `firmware/model_test`, measured the same way as the table below:

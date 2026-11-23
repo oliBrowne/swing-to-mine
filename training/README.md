@@ -12,6 +12,7 @@ python training/dataset.py      # how many windows per person and gesture
 python training/train.py        # test on each person in turn, then save training/out/gesture_small.pt
 python training/per_person.py   # one row per person: windows, replay hits, false triggers (5 seeds, ~3 min)
 python training/export.py       # int8 .pte for the board (needs the ExecuTorch env, see firmware/model_test)
+python training/prune.py        # Lab 3 test: prune to 75/50/35/25% (bn, l1, random) vs training small, float + int8 + replay (~25 min)
 ```
 
 On the board (Nov 13): the int8 export runs in **3.41 ms** per window at 168 MHz with the same top gesture as float, and int8 accuracy on unseen people equals float. Details in [docs/results.md](../docs/results.md).
@@ -28,7 +29,7 @@ flowchart LR
     DS --> AUG["augment.py"]
     AUG --> TR["train.py<br/>leave-one-person-out"]
     DS --> BASE["baseline_rules.py<br/>no-ML comparison"]
-    TR --> CMP["compress.py<br/>prune + int8"]
+    TR --> CMP["prune.py<br/>prune + int8 test"]
     CMP --> EXP["export.py<br/>ExecuTorch -> firmware/Model"]
     TR --> EVAL["evaluate_stream.py<br/>events + false triggers/min"]
     BASE --> EVAL
@@ -44,7 +45,7 @@ flowchart LR
 | `model.py` | Small 1D CNN on `[6, 100]`; a few width options for the size sweep |
 | `train.py` | Leave-one-person-out training; reports mean ± spread |
 | `baseline_rules.py` | Threshold / peak rules for each gesture: the "why ML?" comparison |
-| `compress.py` | Pruning (Lab 3 style) and int8 quantization |
+| `prune.py` | **Exists.** Channel pruning (batch-norm scale, L1, random) vs training the smaller model from scratch, leave one person out, float + int8 + replay; `--save bn 0.5` saves a pruned everyone-model for `export.py`. Results: [docs/compression-and-speed.md](../docs/compression-and-speed.md) |
 | `export.py` | ✅ ExecuTorch export: int8 for CMSIS-NN (default) or `--float`, plus test windows for `firmware/model_test`. Still to do: write into the main firmware's `Model/` with the scaling constants |
 | `per_person.py` | **Exists.** Leave-one-person-out table over several seeds: window accuracy, weakest gesture, replay hits and false triggers per person |
 | `evaluate_stream.py` | **Exists.** Replays whole sessions like the board would (model every 50 ms + the firmware decoder): hits, misses, double fires, wrong gestures, false triggers per minute |

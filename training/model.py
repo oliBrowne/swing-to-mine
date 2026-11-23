@@ -35,7 +35,9 @@ class GestureNet(nn.Module):
         if pool not in POOLS:
             raise ValueError(f"pool must be one of {POOLS}")
         self.pool = pool
-        c1, c2, c3 = WIDTHS[width]
+        # a name from WIDTHS, or three channel counts (pruned models, see prune.py)
+        c1, c2, c3 = WIDTHS[width] if isinstance(width, str) else tuple(int(c) for c in width)
+        self.widths = (c1, c2, c3)
 
         def block(cin, cout, kernel, stride):
             return [nn.Conv1d(cin, cout, kernel, stride=stride, padding=kernel // 2, bias=False),
@@ -70,6 +72,13 @@ def load_checkpoint(path) -> tuple[GestureNet, dict]:
 
 def count_parameters(model: nn.Module) -> int:
     return sum(p.numel() for p in model.parameters())
+
+
+def count_macs(widths, n_classes: int = 6, pool: str = "max") -> int:
+    """Multiply-adds for one window (convs + head; batch norm is folded away)."""
+    c1, c2, c3 = widths
+    macs = 50 * c1 * 6 * 7 + 25 * c2 * c1 * 5 + 13 * c3 * c2 * 5
+    return macs + c3 * (2 if pool == "avgmax" else 1) * n_classes
 
 
 if __name__ == "__main__":
