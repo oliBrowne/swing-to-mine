@@ -1,6 +1,6 @@
 # Project context (team notes)
 
-Shared notes for both teammates and any AI assistant working in this repo: what's built, what's decided, what's still open, and who is doing what. **Last updated: Nov 23, 2026.** If anything here disagrees with the code or with newer docs on `main`, the code and newer docs win; fix this file in the same change.
+Shared notes for both teammates and any AI assistant working in this repo: what's built, what's decided, what's still open, and who is doing what. **Last updated: Nov 23, 2026 (evening).** If anything here disagrees with the code or with newer docs on `main`, the code and newer docs win; fix this file in the same change.
 
 These notes contain no git or commit rules. Each person uses their own git workflow.
 
@@ -54,6 +54,18 @@ Full spec: [controls.md](controls.md). ✅ = decided, ❓ = open (test results s
 - ❓ Freeze speed for the air mouse: 250 °/s by default; the replay suggests ~180 °/s may feel better ([results.md](results.md)).
 - ❓ Auto gyro recalibration in the rest pose (suggested, not agreed).
 - ❓ All angle and speed numbers marked *tune*.
+
+**Open questions from the code review of PR #32** (to settle by testing on the board):
+- ❓ **Sensor reconnect:** after a wire blip the firmware recalibrates the gyro (camera frozen meanwhile). Should it keep the old calibration instead?
+- ❓ **Set-down pause:** it can also trigger when the board is held steady like a TV remote for 1 s. While paused, button presses still send keys, though controls.md says they shouldn't. Fix both, or change the rule?
+- ❓ **Move-mode jump flick** is ON (`MOVE_JUMP_ENABLED 1`). On the recordings it catches ~91% of jumps, with ~1 false jump per minute while looking around. Keep it on, tune it, or turn it off?
+- ❓ **Smaller items:**
+  - USB stalls ~0.13 s each second when no sensor is attached.
+  - Held keys aren't re-sent after unplugging and replugging USB.
+  - Sprint sends `Ctrl`+`W`, which closes a browser tab when testing outside Minecraft. Test in Minecraft or Notepad.
+  - The camera axes are skewed for ~0.5 s after hard swings.
+
+Power-on calibration while the board is held in a hand (instead of lying still) is addressed in **PR #34**, which merges into #32's branch.
 
 ## 5. Gestures, data and the model
 
