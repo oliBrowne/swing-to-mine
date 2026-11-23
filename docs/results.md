@@ -273,3 +273,43 @@ What it means: at the default 250 °/s, ordinary looking around is almost never 
 
 The firmware fired exactly what the PC version fired. The one extra `place` and `swap_right` are mistakes the model also makes on the PC (the piece has a jump cue and 3 idle cues). Not measured here: inference time inside this firmware (Renode doesn't model the chip's timing; `firmware/model_test` measured 3.4 ms on the board) and anything about USB.
 
+
+## Each person tested on their own (Nov 23, on the PC)
+
+**How measured:** `python training/per_person.py` (added for this; ~3 min on 4 CPU cores). For each person with at least 200 windows (P03 has 26, so it is training only): train the default model (`small`, max pooling, 30 epochs) on everyone else, then (1) score that person's cut-out 1 s windows like `train.py`, and (2) replay all their sessions every 50 ms through the same decoder as `evaluate_stream.py` / the firmware. 5 seeds (0–4), each with one CPU thread, so a rerun gives the same numbers. Data: `main` at 7cd3fa8, 11,126 windows from 8 people. `BAD_CUES` as on main: marked for P01 s01–s06, P02, P07 s2, P10, P11; **not checked yet** for P01 s33 and s7, P05 s34, P06 s1–s4, P07 s1 (Eli's Nov 22 data), so their scores may include recording mistakes.
+
+Mean over 5 seeds (min–max):
+
+| Person | Gesture cues | Windows | Windows right | Cues caught (replay) | Wrong gesture also fired, per 100 cues | Minutes between cues | Accidental gestures per minute |
+|---|---|---|---|---|---|---|---|
+| P01 | 259 | 3,682 | 99.4% (99.3–99.6) | 100.0% (100–100) | 2.1 | 36.2 | 0.09 (0.03–0.19) |
+| P02 | 218 | 1,762 | 99.5% (99.0–99.8) | 97.1% (95.9–97.7) | 6.0 | 5.6 | 0.04 (0.00–0.18) |
+| P05 | 50 | 513 | 97.2% (96.1–98.2) | 89.2% (86.0–94.0) | 10.8 | 2.1 | 0.56 (0.47–0.93) |
+| P06 | 120 | 950 | 97.7% (96.3–98.5) | 94.8% (92.5–95.8) | 5.7 | 19.4 | 0.00 |
+| P07 | 46 | 436 | 94.9% (92.0–96.1) | 90.9% (87.0–95.7) | 7.0 | 1.7 | 1.17 (0.58–2.33) |
+| P10 | 195 | 2,646 | 96.5% (95.8–97.2) | 90.9% (88.2–94.4) | 4.4 | 10.5 | 0.32 (0.10–0.57) |
+| P11 | 146 | 1,111 | 97.2% (95.2–98.2) | 94.4% (86.3–98.6) | 18.2 | 3.2 | 0.00 |
+
+All people pooled, per seed: cues caught 94.4 / 95.4 / 95.1 / 95.5 / 96.4% of 1,034 cues; accidental gestures 16 / 4 / 8 / 11 / 12 in 78.8 minutes between cues = 0.20 / 0.05 / 0.10 / 0.14 / 0.15 per minute (mean 95.4%, 0.13 per minute). Mean window accuracy over the 7 people: 97.5%.
+
+Windows right per gesture (mean over 5 seeds):
+
+| Person | nothing | sword | mine | place | swap_left | swap_right |
+|---|---|---|---|---|---|---|
+| P01 | 99 | 100 | 100 | 98 | 100 | 100 |
+| P02 | 100 | 100 | 100 | 96 | 100 | 100 |
+| P05 | 99 | 100 | 99 | 87 | 100 | 90 |
+| P06 | 100 | 99 | 96 | 94 | 100 | 96 |
+| P07 | 97 | 100 | 93 | 89 | 86 | 100 |
+| P10 | 97 | **79** | 100 | 100 | 100 | 100 |
+| P11 | 99 | 91 | 98 | 95 | 98 | 100 |
+| mean | 98.8 | 95.4 | 98.0 | 94.3 | 97.6 | 97.9 |
+
+Cues caught in the replay, per gesture (mean over seeds): P10 sword 70%, P11 sword 82%, P05 place 64%, P07 place 76%, P06 place 83%, P02 place 85%, P05 swap_right 84%; everything else 90% or more.
+
+What goes wrong most (window counts summed over the 5 seeds):
+- **P10:** nothing read as place (144), sword read as mine (113) or nothing (110). Same as before: slow sword swings, and his look-around idle sets off place (13 of his 17 accidental gestures were place).
+- **P11:** sword read as swap_right (37). In the replay her sword cues often fire a hotbar scroll as well (18 wrong extras per 100 cues, the highest).
+- **P05, P06, P07:** place and mine mixed up both ways (P05 32, P06 19 + 45, P07 26 + 24), and swap_right/swap_left mixed up (P05 26, P06 25, P07 25). These are the people with unchecked cues, so some may be recording mistakes.
+
+Compared with the seed-0 run earlier today (`train.py`, multi-threaded): same picture, but P11 was 93.6% there and 95.2–98.2% here, and the sword average 91% vs 95.4% here. One training run moves a person's score by up to ~3 points, so single-seed differences of that size don't mean much.

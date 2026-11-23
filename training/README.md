@@ -10,6 +10,7 @@ Everything from recorded sessions to the model file the firmware runs.
 pip install -r training/requirements.txt
 python training/dataset.py      # how many windows per person and gesture
 python training/train.py        # test on each person in turn, then save training/out/gesture_small.pt
+python training/per_person.py   # one row per person: windows, replay hits, false triggers (5 seeds, ~3 min)
 python training/export.py       # int8 .pte for the board (needs the ExecuTorch env, see firmware/model_test)
 ```
 
@@ -45,6 +46,7 @@ flowchart LR
 | `baseline_rules.py` | Threshold / peak rules for each gesture: the "why ML?" comparison |
 | `compress.py` | Pruning (Lab 3 style) and int8 quantization |
 | `export.py` | ✅ ExecuTorch export: int8 for CMSIS-NN (default) or `--float`, plus test windows for `firmware/model_test`. Still to do: write into the main firmware's `Model/` with the scaling constants |
+| `per_person.py` | **Exists.** Leave-one-person-out table over several seeds: window accuracy, weakest gesture, replay hits and false triggers per person |
 | `evaluate_stream.py` | **Exists.** Replays whole sessions like the board would (model every 50 ms + the firmware decoder): hits, misses, double fires, wrong gestures, false triggers per minute |
 
 ## Experiments to report (in `docs/results.md`)
