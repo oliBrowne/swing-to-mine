@@ -46,14 +46,14 @@
 #define FREEZE_HOLD_MS        150    /* camera stays frozen this long after the fast motion ends */
 #define POINT_DELAY_SAMPLES   6      /* mouse motion is held back 60 ms so a starting gesture can cancel it */
 
-/* ---- move mode (PR #11 is on hold: everything move-mode lives here so it is easy to change) ---- */
+/* ---- move mode (docs/controls.md "Move mode"; everything move-mode lives here so it is easy to change) ---- */
 #define MOVE_ZERO_MS          200    /* hold still this long after entering move mode; neutral is saved */
 #define WALK_DEG              15.0f  /* tune: forward/back tilt for W / S */
 #define STRAFE_DEG            22.0f  /* tune: side tilt for A / D */
 #define TILT_HYST_DEG         3.0f   /* let go a few degrees below the threshold so keys don't chatter */
 #define SPRINT_DEG            40.0f  /* tune: steep forward tilt ... */
 #define SPRINT_HOLD_MS        300    /* ... held this long starts sprinting; stops below WALK_DEG */
-#define MOVE_JUMP_ENABLED     1      /* 1 = quick upward flick taps Space in move mode (controls.md, PR #11) */
+#define MOVE_JUMP_ENABLED     1      /* 1 = quick upward flick taps Space in move mode (controls.md) */
 #define JUMP_UP_G             0.8f   /* tune: upward acceleration beyond gravity that counts as a flick */
 #define JUMP_COOLDOWN_MS      600
 
