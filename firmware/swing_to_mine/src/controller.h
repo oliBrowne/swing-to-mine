@@ -71,7 +71,7 @@ typedef struct {
     int blink_count;
     uint32_t blink_start;
     /* counters for debugging (read with the debugger / tests) */
-    uint32_t n_gestures_used, n_gestures_ignored, n_jumps;
+    uint32_t n_gestures_used, n_gestures_ignored, n_jumps, n_buttons_ignored;
 } controller_t;
 
 void controller_init(controller_t *c, uint32_t now_ms);

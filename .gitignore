@@ -12,3 +12,5 @@ firmware/**/Release/
 firmware/**/build/
 .DS_Store
 Thumbs.db
+firmware/**/build-*/
+training/out/

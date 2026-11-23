@@ -506,6 +506,13 @@ static void test_rest_pose(void)
     int lit = 0;
     for (int i = 0; i < 2000; i++) lit += controller_leds(&s.c, s.now + i) != 0;
     CHECK(lit > 200 && lit < 1800, "LED breathes while paused (%d of 2000 ms lit)", lit);
+    /* the button does nothing while resting (controls.md: pause ALL output) */
+    sim_reset_counts(&s);
+    press(&s, 100); sim_ms(&s, 80); press(&s, 100); sim_ms(&s, 500);   /* double press = Shift */
+    press(&s, 1200); sim_ms(&s, 500);                                   /* hold = E + inventory */
+    press(&s, 100); sim_ms(&s, 500);                                    /* single = move mode */
+    CHECK(s.shift_presses == 0 && s.key_e_presses == 0 && s.c.mode == MODE_LOOK && s.c.paused,
+          "button ignored while paused (shift %d, E %d, mode %d)", s.shift_presses, s.key_e_presses, s.c.mode);
     s.gyro_dps[0] = 90.0f / 0.5f;  /* pick it up */
     sim_ms(&s, 500);
     s.gyro_dps[0] = 0;

@@ -67,6 +67,10 @@ void controller_tick(controller_t *c, int pressed, uint32_t now)
 
     button_event_t ev = button_update(&c->button, pressed, c->mode == MODE_INVENTORY, now);
     if (c->mode == MODE_CALIBRATE || ev == BTN_NONE) return;
+    if (c->paused) {           /* resting: all output is paused, the button too */
+        c->n_buttons_ignored++;
+        return;
+    }
 
     int in_play = c->mode != MODE_INVENTORY;
     switch (ev) {

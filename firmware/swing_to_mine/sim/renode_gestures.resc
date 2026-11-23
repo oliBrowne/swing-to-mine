@@ -1,0 +1,33 @@
+# Plays a recording through the fake MPU-6050 into the firmware built with
+# the gesture model (SWING_MODEL=ON) and prints what reached the USB code.
+# Run with sim/renode_gestures.sh, which makes the recording piece and checks the numbers.
+include $ORIGIN/FakeMpu6050.cs
+mach create
+machine LoadPlatformDescription @platforms/boards/stm32f4_discovery-kit.repl
+machine LoadPlatformDescriptionFromString "mpu: Sensors.FakeMpu6050 @ i2c1 0x68"
+sysbus.nvic Frequency 168000000
+sysbus.i2c1.mpu Replay $rows
+sysbus LoadELF $elf
+emulation RunFor $seconds
+echo "STEP result"
+sysbus.i2c1.mpu Played
+sysbus ReadDoubleWord $g_mode
+sysbus ReadDoubleWord $g_samples
+sysbus ReadDoubleWord $g_inferences
+sysbus ReadDoubleWord $g_model_error
+sysbus ReadDoubleWord $g_model_errors
+sysbus ReadDoubleWord $g_out_left
+sysbus ReadDoubleWord $g_out_right
+sysbus ReadDoubleWord $g_out_left_ms
+sysbus ReadDoubleWord $g_out_wheel
+sysbus ReadDoubleWord $g_out_wheel_steps
+echo "STEP events"
+sysbus ReadDoubleWord $ev0
+sysbus ReadDoubleWord $ev1
+sysbus ReadDoubleWord $ev2
+sysbus ReadDoubleWord $ev3
+sysbus ReadDoubleWord $ev4
+sysbus ReadDoubleWord $ev5
+sysbus ReadDoubleWord $ev6
+echo "STEP end"
+quit

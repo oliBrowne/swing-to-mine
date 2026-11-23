@@ -255,3 +255,21 @@ Next: look-around idle from more people (only P10 has it), and see whether train
 | **250 °/s** (default, from controls.md) | 41 °/s | 2% | 17 °/s | 48 °/s | 17 °/s | 5% |
 
 What it means: at the default 250 °/s, ordinary looking around is almost never frozen, but gestures still drag the camera noticeably before the freeze kicks in (a sword swing moves the view, the place jab barely rotates the board so the freeze rarely triggers). Lowering it to ~180 °/s roughly halves the drag during swings and freezes normal looking 6% of the time. This is a feel question to settle in the first play test (`FREEZE_DPS` in `firmware/swing_to_mine/src/config.h`). The hotbar flicks hardly move the camera at any setting, because they turn the board around the handle's forward axis, which the air mouse ignores.
+
+## Eight people, and the controller with the model in the simulator (Nov 23, on the PC)
+
+**Training with Eli's new people** (P05, P06, P07 and more P01, pushed Nov 22; `python training/train.py`, default settings, seed 0, 11,126 windows from 8 people, ~8 min on 4 CPU cores). Leave one person out, share of their windows right: P01 99.2%, P02 99.7%, P05 95.5%, P06 97.1%, P07 94.3%, P10 95.4%, P11 93.6% (P03 has only 26 windows, training only). Per class, averaged over the unseen people: nothing 99%, sword 91%, mine 96%, place 94%, swap_left 97%, swap_right 98%. Most of Eli's new sessions haven't had their bad cues marked yet (his commit says so), so the new people's numbers may go up once that's done. The model trained on everyone, exported int8 (`training/export.py`, ExecuTorch 1.3.1, torch 2.12), gives the same top class as the float model on 100% of the 11,126 windows; the `.pte` is 21.8 KB.
+
+**Controller firmware with the model linked in** (`SWING_MODEL=ON`, arm-none-eabi-gcc, `--print-memory-usage`): 122.9 KB flash, 44.7 KB RAM (of 1 MB / 128 KB).
+
+**End to end in the simulator** (`firmware/swing_to_mine/sim/renode_gestures.sh`, Renode 1.15.3): cues 1–20 of P02 s10 (65.5 s) played through the fake MPU-6050 at 100 Hz into the full firmware, with the int8 model running on the simulated Cortex-M4 every 50 ms (1,358 runs, none failed). This session was part of the training data, so this checks that the firmware does what the PC does, not how accurate the model is.
+
+| | sword | mine | place | swap_left | swap_right |
+|---|---|---|---|---|---|
+| cued | 4 | 2 | 2 | 4 | 4 |
+| PC: float model + `decode()` on the same samples | 4 | 2 | 3 | 4 | 5 |
+| firmware in the simulator: decoder events | 4 | 2 | 3 | 4 | 5 |
+| firmware: handed to USB | 4 left clicks | 2 left holds (5.8 s held in total) | 3 right clicks | 9 scroll steps, sum −1 (4 up, 5 down) | |
+
+The firmware fired exactly what the PC version fired. The one extra `place` and `swap_right` are mistakes the model also makes on the PC (the piece has a jump cue and 3 idle cues). Not measured here: inference time inside this firmware (Renode doesn't model the chip's timing; `firmware/model_test` measured 3.4 ms on the board) and anything about USB.
+

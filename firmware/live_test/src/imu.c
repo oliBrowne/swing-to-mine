@@ -16,6 +16,7 @@
 #define GPIO_OTYPER(p)  REG((p) + 0x04)
 #define GPIO_OSPEEDR(p) REG((p) + 0x08)
 #define GPIO_PUPDR(p)   REG((p) + 0x0C)
+#define GPIO_IDR(p)     REG((p) + 0x10)
 #define GPIO_BSRR(p)    REG((p) + 0x18)
 #define GPIO_AFRL(p)    REG((p) + 0x20)
 #define GPIO_AFRH(p)    REG((p) + 0x24)
@@ -61,6 +62,8 @@ static void i2c_unjam_bus(void)
     GPIO_BSRR(GPIOB_BASE) = (1u << 6) | (1u << 9);
     GPIO_MODER(GPIOB_BASE) &= ~((3u << 12) | (3u << 18));
     GPIO_MODER(GPIOB_BASE) |= (1u << 12) | (1u << 18);
+    board_delay_ms(1);
+    if (GPIO_IDR(GPIOB_BASE) & (1u << 9)) return;   /* SDA is free: nothing to do (saves 18 ms) */
     for (int i = 0; i < 9; i++) {
         GPIO_BSRR(GPIOB_BASE) = (1u << (6 + 16)); board_delay_ms(1);
         GPIO_BSRR(GPIOB_BASE) = (1u << 6);        board_delay_ms(1);
@@ -163,7 +166,9 @@ int imu_init(uint8_t *who)
     int err = 0;
     i2c_init();
     *who = 0xFF;
-    err |= i2c_write_reg(MPU_ADDR, MPU_PWR_MGMT_1, 0x80);   /* reset */
+    /* No answer to the first write = no sensor: stop here instead of waiting
+     * 110 ms for a reset that never happens (the USB code can't run meanwhile). */
+    if (i2c_write_reg(MPU_ADDR, MPU_PWR_MGMT_1, 0x80)) return -1;   /* reset */
     board_delay_ms(100);
     err |= i2c_write_reg(MPU_ADDR, MPU_PWR_MGMT_1, 0x01);   /* wake, gyro clock */
     board_delay_ms(10);

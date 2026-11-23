@@ -42,6 +42,13 @@ volatile uint32_t g_paused = 0;
 volatile uint32_t g_usb_mounted = 0;
 volatile float g_fwd_deg = 0.0f, g_side_deg = 0.0f;   /* move-mode tilt */
 volatile uint32_t g_loop_us_max = 0;        /* worst sample step incl. the model */
+/* what went out to USB, counted at the hand-over to the USB code
+ * (the simulator check reads these, since it has no USB port) */
+volatile uint32_t g_out_left = 0, g_out_right = 0;   /* button presses (rising edges) */
+volatile uint32_t g_out_left_ms = 0;                 /* ms the left button was held (mining) */
+volatile int32_t g_out_wheel = 0;                    /* sum of scroll steps, + = up/left */
+volatile uint32_t g_out_wheel_steps = 0;             /* scroll steps either way */
+volatile uint32_t g_out_keys = 0;                    /* key/modifier presses (rising edges) */
 
 static controller_t ctrl;
 static decoder_t dec;
@@ -78,6 +85,20 @@ static void on_sample(const int16_t s[6], uint32_t now)
         g_events[ev] = g_events[ev] + 1;
         controller_gesture(&ctrl, ev, now);
     }
+}
+
+static void count_output(const hid_frame_t *f)
+{
+    static hid_frame_t last;
+    if ((f->buttons & MOUSE_LEFT) && !(last.buttons & MOUSE_LEFT)) g_out_left = g_out_left + 1;
+    if ((f->buttons & MOUSE_RIGHT) && !(last.buttons & MOUSE_RIGHT)) g_out_right = g_out_right + 1;
+    if (f->buttons & MOUSE_LEFT) g_out_left_ms = g_out_left_ms + 1;
+    if (f->wheel) {
+        g_out_wheel = g_out_wheel + f->wheel;
+        g_out_wheel_steps = g_out_wheel_steps + (uint32_t)(f->wheel > 0 ? f->wheel : -f->wheel);
+    }
+    if ((f->modifier & ~last.modifier) || (f->keys[0] && f->keys[0] != last.keys[0])) g_out_keys = g_out_keys + 1;
+    last = *f;
 }
 
 int main(void)
@@ -139,6 +160,7 @@ int main(void)
             if (g_imu_ok) controller_frame(&ctrl, now, &f);
             else memset(&f, 0, sizeof(f));             /* no sensor: nothing held */
             hid_out_set(&f);
+            count_output(&f);
             if (g_imu_ok) led_set(controller_leds(&ctrl, now));
             else led_set((now / 100) % 2 ? LED_RED : 0);   /* red fast blink: sensor not answering */
             g_mode = ctrl.mode;
