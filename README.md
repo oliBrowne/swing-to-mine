@@ -25,19 +25,33 @@
 - **On the board:** the int8 model runs on the STM32F407 in **3.4 ms** per window, using 117 KB of flash and 42 KB of RAM, with the same answers as the PC version ([`firmware/model_test`](firmware/model_test/README.md)).
 - **Trigger rules:** the logic that turns model guesses into single clicks (confidence bar, 3 agreeing guesses, cooldown, hold for mining) is written in Python and C++ and checked to match on replayed recordings.
 
-**How good is it** (all on the PC, on people the model never saw; details in [docs/results.md](docs/results.md))
+**How good is it** (all on the PC, on people the model never saw; details in [docs/results.md](docs/results.md#each-person-tested-on-their-own-nov-23-on-the-pc))
 
-| Test | Result |
+### 🧪 Tested on each person (Nov 23)
+
+For each person, we trained a model on **everyone else** and then tested it on that person, so every number is for someone the model had never seen. Each test was repeated with 5 training runs and averaged. P03 has too little data to test and is only used for training.
+
+| Person | Gestures tested | 1 s clips classified right | Weakest gesture | Gestures caught when replaying the whole recording | Accidental gestures per minute between cues |
+|---|---|---|---|---|---|
+| P01 | 259 | 99.4% | place (98%) | 100% | 0.09 |
+| P02 | 218 | 99.5% | place (96%) | 97% | 0.04 |
+| P05 | 50 | 97.2% | place (87%) | 89% | 0.56 |
+| P06 | 120 | 97.7% | place (94%) | 95% | 0.00 |
+| P07 | 46 | 94.9% | swap_left (86%) | 91% | 1.17 |
+| P10 | 195 | 96.5% | sword (79%) | 91% | 0.32 |
+| P11 | 146 | 97.2% | sword (91%) | 94% | 0.00 |
+| **All** | **1,034** | **97.5%** (average of people) | **place 94%, sword 95%** | **95.4%** | **0.13** |
+
+How to read it: "clips classified right" scores 1 s pieces cut around each gesture. "Gestures caught" is closer to real play: the whole recording is played through the model and the same trigger rules the board uses, and we count how many cued gestures fired the right action. P05 and P07 recorded only about 50 gestures and 2 minutes of pauses, so their numbers swing more (P07's accidental gestures are 1 to 4 events in total). Most of the new sessions (P01's newest, P05, P06, P07's first) haven't been checked for badly done cues yet, so a few of their "misses" may be recording mistakes rather than model mistakes. The "between cues" time is mostly holding still; looking around is harder (next table). Run it yourself with `python training/per_person.py`.
+
+| Other tests | Result |
 |---|---|
-| 1 s windows classified right | P01 99.4%, P02 99.9%, P10 96.1%, P11 96.8% |
-| Whole recordings replayed like the board would, right gesture fired | 92.8 to 94.4% (3 training runs) |
-| Accidental gestures while holding still between cues | 0.04 to 0.16 per minute |
-| Accidental gestures while looking around (P10 only) | **0.2 to 1.4 per minute**, mostly "place" |
+| Accidental gestures while looking around (P10 only, Nov 14) | **0.2 to 1.4 per minute**, mostly "place" |
 
 **Weak spots**
 
 - **Looking around sets off "place".** Slow pointing movements look like a gentle forward jab. This is the biggest open problem, since look mode is most of the game. Next step: record look-around idle from everyone and train on it.
-- **Slow sword swings** (P10 swings at about half the speed of the others) are only caught 75 to 81% of the time.
+- **Slow sword swings** (P10 swings at about half the speed of the others) are only caught about 70 to 80% of the time.
 - **Hard wrist flicks** sometimes fire the opposite flick too, as the wrist bounces back.
 
 **Not built yet**
