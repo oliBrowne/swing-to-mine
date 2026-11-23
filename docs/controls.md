@@ -1,6 +1,6 @@
 # Controls and board states
 
-Every motion and button action, what it does in each mode, and what the firmware has to remember. This is a **spec**: none of it is built yet. [architecture.md](architecture.md#modes) and [gesture-notes.md](gesture-notes.md) follow it.
+Every motion and button action, what it does in each mode, and what the firmware has to remember. This is the **spec**. Since Nov 22 it is implemented in [firmware/swing_to_mine](../firmware/swing_to_mine/README.md), but only checked without hardware (numbers in its `src/config.h`). [architecture.md](architecture.md#modes) and [gesture-notes.md](gesture-notes.md) follow it.
 
 Everything here was decided by Oliver on Nov 12 unless marked 🟡 (suggested, not yet agreed). Numbers marked *tune* are starting values to adjust on the board.
 
@@ -113,7 +113,7 @@ The four LEDs sit in a ring: orange (LD3, top), green (LD4, left), red (LD5, rig
 | **Green** steady | look mode |
 | **Blue** steady | inventory |
 | **Red** short blink (~100 ms) | the model recognised a gesture (handy for testing and the demo video) |
-| All four spin | calibrating at power-on: keep still |
+| All four spin | calibrating at power-on: keep still (a steady hand is enough after ~3 s) |
 | All four flash once, while holding | 1 s reached: let go to open/close the inventory |
 | All four spin, while holding | 3 s reached: let go to resync |
 | Mode LED blinks 3 times | resync done |
@@ -152,7 +152,7 @@ Other rules:
 
 - **Changing mode releases held inputs** (walking keys, `Ctrl`, a held left click from mining).
 - **Rest pose** (set down flat and still for >1 s) pauses all output.
-- **Calibration:** the full gyro calibration (about 1–2 s still, averages the drift) runs at power-on; the black reset button redoes it.
+- **Calibration:** the full gyro calibration (about 1–2 s still, averages the drift) runs at power-on; the black reset button redoes it. If the board is never that still because it's in a hand, after ~3 s it uses the calmest second so far instead (Oliver, Nov 23), unless it is being waved about, in which case it waits for a steadier second.
 - **USB unplug or reset:** the board starts over (`CALIBRATE`, then `LOOK`). Crouch is unaffected because the game holds it.
 
 ## Open questions

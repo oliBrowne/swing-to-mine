@@ -2,6 +2,8 @@
 
 **Goal: working controller done by Thanksgiving (Thu Nov 26).** That leaves Dec 8 for the presentation only, with nothing left to build.
 
+**Status (Nov 22):** the controller firmware (USB keyboard + mouse, modes, air mouse, walking, gestures) is written and checked on a PC and in a simulator, not on hardware yet ([firmware/swing_to_mine](../firmware/swing_to_mine/README.md)). Next is the first hardware test.
+
 **Status (Nov 15):** data, model and on-board speed test are ahead of plan; the controller itself (USB keyboard/mouse, look/move modes, button) is behind, since week 2's items haven't started. Current state and numbers: [README](../README.md#-where-we-are-nov-15).
 
 Rough budget: about 30 hours each (the course minimum), or about 6 hours a week each for 5 weeks.
@@ -31,10 +33,10 @@ Present                                                         ★
 
 ## Week 2 · Nov 2 – Nov 8 · It's a controller (no ML yet)
 
-- [ ] USB composite HID: the board shows up as a keyboard + mouse · *Oliver*
-- [ ] Button per [controls.md](controls.md): single press look/move, hold 1 s inventory, double press crouch; LEDs show the mode · *Oliver*
-- [ ] Look mode: gyro "air mouse" with drift calibration · *Oliver*
-- [ ] Move mode: tilt to walk (or whatever we pick in week 1) · *Oliver*
+- [ ] USB composite HID: the board shows up as a keyboard + mouse · *Oliver* · Nov 22: written (`firmware/swing_to_mine`), not tried on a PC yet
+- [ ] Button per [controls.md](controls.md): single press look/move, hold 1 s inventory, double press crouch; LEDs show the mode · *Oliver* · Nov 22: written + simulator-checked
+- [ ] Look mode: gyro "air mouse" with drift calibration · *Oliver* · Nov 22: written, tested on PC + recordings
+- [ ] Move mode: tilt to walk (or whatever we pick in week 1) · *Oliver* · Nov 22: written, tested on PC
 - [x] Record pilot data: about 20 reps of each gesture · *everyone*
 - [ ] **Nov 6:** idea and team locked in (course milestone, nothing to submit)
 
@@ -54,7 +56,7 @@ Present                                                         ★
 - [x] Train on the full dataset, testing on a person left out of training · *Eli*
 - [ ] Prune + int8-quantize, export with ExecuTorch (Lab 3 pipeline) · *Eli* · int8 export done and runs on the board in 3.4 ms; no pruning (not needed so far)
 - [ ] Run the model on the board every ~50 ms on a sliding window · *Oliver* · `firmware/live_test` built, not yet run with the sensor
-- [ ] Turn predictions into inputs: smoothing, cooldowns, hold-to-mine, aim freeze during swings · *Oliver*
+- [ ] Turn predictions into inputs: smoothing, cooldowns, hold-to-mine, aim freeze during swings · *Oliver* · Nov 22: written in `firmware/swing_to_mine`, not on hardware
 - [ ] Measure: accuracy, lag (motion → input), flash/RAM use, false triggers per minute · *both*
 
 **Done when:** you can mine, fight, place, jump and swap items in Minecraft with gestures alone.

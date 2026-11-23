@@ -28,6 +28,40 @@ jobs:
             firmware/capture/build/capture.bin
             firmware/capture/build/capture.elf
 
+  controller:
+    name: Controller firmware (build, logic tests, simulator)
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          submodules: true
+      - name: Install Arm GCC, CMake and Ninja
+        run: sudo apt-get update -qq && sudo apt-get install -y -qq gcc-arm-none-eabi cmake ninja-build
+      - name: Build firmware/swing_to_mine (no model)
+        working-directory: firmware/swing_to_mine
+        run: |
+          cmake -B build -G Ninja -DCMAKE_TOOLCHAIN_FILE=../model_test/arm-gcc-toolchain.cmake
+          cmake --build build
+      - name: Logic tests on the PC (buttons, modes, air mouse, walking, gestures)
+        run: make -C firmware/swing_to_mine/test
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
+      - name: Decoder matches training/evaluate_stream.py
+        run: pip install numpy && make -C firmware/swing_to_mine/test parity
+      - name: Simulator check (Renode, fake sensor)
+        run: |
+          curl -sSL https://github.com/renode/renode/releases/download/v1.15.3/renode-1.15.3.linux-portable.tar.gz | tar xz -C "$RUNNER_TEMP"
+          bash firmware/swing_to_mine/sim/renode_check.sh "$RUNNER_TEMP/renode_1.15.3_portable/renode"
+      - name: Keep the built .hex/.bin for download
+        uses: actions/upload-artifact@v4
+        with:
+          name: swing-to-mine-firmware-no-model
+          path: |
+            firmware/swing_to_mine/build/swing_to_mine.hex
+            firmware/swing_to_mine/build/swing_to_mine.bin
+            firmware/swing_to_mine/build/swing_to_mine.elf
+
   python:
     name: Check Python scripts
     runs-on: ubuntu-latest

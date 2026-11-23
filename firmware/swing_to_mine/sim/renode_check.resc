@@ -1,0 +1,40 @@
+# Boots the controller firmware in Renode on a simulated STM32F4 Discovery
+# with a fake MPU-6050, presses the blue button, and prints the mode and LEDs.
+# Run with sim/renode_check.sh (it reads the numbers and says PASS / FAIL).
+# Renode doesn't simulate the USB port, so this checks everything but USB.
+include $ORIGIN/FakeMpu6050.cs
+mach create
+machine LoadPlatformDescription @platforms/boards/stm32f4_discovery-kit.repl
+machine LoadPlatformDescriptionFromString "mpu: Sensors.FakeMpu6050 @ i2c1 0x68"
+# Renode's SysTick runs at 72 MHz by default; the real chip runs at 168 MHz
+sysbus.nvic Frequency 168000000
+sysbus LoadELF $elf
+emulation RunFor "3"
+echo "STEP power-on"
+sysbus ReadDoubleWord $g_mode
+sysbus ReadDoubleWord 0x40020C14
+sysbus.gpioPortA.UserButton Press
+emulation RunFor "0.1"
+sysbus.gpioPortA.UserButton Release
+emulation RunFor "0.8"
+echo "STEP single-press"
+sysbus ReadDoubleWord $g_mode
+sysbus ReadDoubleWord 0x40020C14
+sysbus.gpioPortA.UserButton Press
+emulation RunFor "1.3"
+sysbus.gpioPortA.UserButton Release
+emulation RunFor "0.5"
+echo "STEP hold-1s"
+sysbus ReadDoubleWord $g_mode
+sysbus ReadDoubleWord 0x40020C14
+sysbus.gpioPortA.UserButton Press
+emulation RunFor "1.3"
+sysbus.gpioPortA.UserButton Release
+emulation RunFor "0.5"
+echo "STEP hold-1s-again"
+sysbus ReadDoubleWord $g_mode
+sysbus ReadDoubleWord 0x40020C14
+echo "STEP samples"
+sysbus ReadDoubleWord $g_samples
+echo "STEP end"
+quit

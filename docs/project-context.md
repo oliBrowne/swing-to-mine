@@ -34,7 +34,7 @@ Before starting something new, check this section and the open PRs so we don't b
 - CI builds the firmware and checks the Python scripts.
 
 **Written but not tested on a board:**
-- **`firmware/swing_to_mine`, the controller (PR #32, not merged yet).** It includes the USB keyboard + mouse, gyro calibration, air mouse, the button/mode/LED logic from [controls.md](controls.md), move-mode tilt walking + sprint + jump flick, the rest-pose pause, and the gesture decoder. It has only been checked on a PC (71 logic tests, decoder identical to `evaluate_stream.py`) and in the Renode simulator. USB on a real PC, the real sensor, the axis directions and all the tune values are **unchecked**. All move-mode rules are in `src/tilt_walk.c` + `src/config.h`, and `MOVE_JUMP_ENABLED 0` turns the jump off.
+- **`firmware/swing_to_mine`, the controller (PR #32, not merged yet).** It includes the USB keyboard + mouse, gyro calibration, air mouse, the button/mode/LED logic from [controls.md](controls.md), move-mode tilt walking + sprint + jump flick, the rest-pose pause, and the gesture decoder. It has only been checked on a PC (82 logic tests, decoder identical to `evaluate_stream.py`) and in the Renode simulator. USB on a real PC, the real sensor, the axis directions and all the tune values are **unchecked**. All move-mode rules are in `src/tilt_walk.c` + `src/config.h`, and `MOVE_JUMP_ENABLED 0` turns the jump off.
 - `firmware/live_test` (sensor → model → LEDs) was never run with the sensor attached; PR #32 mostly replaces it.
 
 **Known hardware issue:** the board restarted once on a hard swing (probably a loose wire or a power dip). Check the wiring before demos.
